@@ -81,7 +81,7 @@ public class PlantView extends JPanel
 
                 if (controller != null)
                 {
-                    controller.identiyPhoto(image);
+                    controller.identifyPhoto(image);
                 }
             } catch (IOException e)
             {
@@ -90,7 +90,7 @@ public class PlantView extends JPanel
         }
     }
 
-    public void render(PlantSnapShot snapshot) 
+    public void render(PlantSnapshot snapshot)
     {
         if (snapshot == null)
         {
