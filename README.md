@@ -94,5 +94,4 @@ to the controller.
 | `PlantController.java` | Andrew | Wrote and revised. |
 | `README.md` | Jamie | Wrote and revised. |
 
-**GenAI use:** AI assistance was used to inspect the project and help draft and
-revise this README.
+**GenAI use:** AI assistance was used to inspect the project and help revise this README.
