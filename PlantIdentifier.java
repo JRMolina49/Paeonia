@@ -12,7 +12,7 @@ public interface PlantIdentifier
      * @param image encoded image bytes
      * @return non-null identification results; empty when no plant matches
      * @throws IllegalArgumentException if the image is invalid
-     * @throws ServiceException if the implementation cannot complete its request
+     * @throws RuntimeException if the service cannot complete its request
      */
     List<Identification> identify(byte[] image);
 }

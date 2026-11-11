@@ -56,6 +56,14 @@ public final class LinkedQueueTest
             TestSupport.check(numbers.dequeue() == i, "FIFO over many items");
         }
         TestSupport.check(numbers.isEmpty(), "Drain many items");
+        numbers.enqueue(1);
+        numbers.enqueue(2);
+        TestSupport.check(numbers.dequeue() == 1, "Interleaved first removal");
+        numbers.enqueue(3);
+        TestSupport.check(numbers.toList().equals(List.of(2, 3)), "Enqueue after partial removal");
+        List<Integer> before = numbers.toList();
+        TestSupport.check(numbers.dequeue() == 2 && numbers.dequeue() == 3, "Interleaved FIFO");
+        TestSupport.check(before.equals(List.of(2, 3)), "Queue changes cannot change old list");
         System.out.println("LinkedQueueTest passed");
     }
 }

@@ -24,6 +24,7 @@ public final class PlantModelTest
     public static void main(String[] args) throws Exception
     {
         checkModel();
+        checkCartAcrossIdentifications();
         System.out.println("PlantModelTest passed");
     }
 
@@ -119,6 +120,45 @@ public final class PlantModelTest
         identifier.results = new ArrayList<>();
         identifier.results.add(null);
         expect(IllegalStateException.class, () -> multiple.identify(image));
+    }
+
+    private static void checkCartAcrossIdentifications() throws Exception
+    {
+        byte[] image = TestSupport.image();
+        FakeIdentifier identifier = new FakeIdentifier();
+        Listing original = listing("original");
+        Listing replacement = new Listing("replacement", "other", "Other plant", "plant", 2000);
+        PlantModel model = new PlantModel(identifier, species ->
+            new CatalogResult("Care", List.of("species".equals(species) ? original : replacement)));
+        model.identify(image);
+        model.addToCart("original");
+        model.addToCart("original");
+        PlantSnapshot before = model.snapshot();
+
+        // Reject a corrupt PNG without calling the identifier or changing state.
+        int calls = identifier.calls;
+        byte[] truncated = java.util.Arrays.copyOf(image, 20);
+        expect(IllegalArgumentException.class, () -> model.identify(truncated));
+        check(identifier.calls == calls, "Corrupt images must not reach the service");
+        check(model.snapshot().getCart().equals(before.getCart()), "Corrupt image preserves cart");
+        check(model.snapshot().getPlant().equals(before.getPlant()), "Corrupt image preserves plant");
+        check(model.snapshot().getListings().equals(before.getListings()), "Corrupt image preserves listings");
+
+        identifier.results = List.of(new Identification("other", "Other scientific", "Other", 0.8));
+        model.identify(image);
+        check(model.snapshot().getListings().equals(List.of(replacement)), "Replace available listings");
+        expect(IllegalArgumentException.class, () -> model.addToCart("original"));
+        model.addToCart("replacement");
+        check(model.snapshot().getCart().size() == 3, "Keep queued items across identifications");
+        check(model.checkoutNext().getListing() == original, "First queued item stays first");
+        check(model.checkoutNext().getListing() == original, "Repeated additions remain separate items");
+        check(model.checkoutNext().getListing() == replacement, "New listing follows older items");
+        expect(NoSuchElementException.class, model::checkoutNext);
+        model.addToCart("replacement");
+        check(model.checkoutNext().getListing() == replacement, "Reuse cart after draining");
+        check(model.snapshot().getCart().isEmpty(), "Cart is empty after checkout");
+        check(before.getCart().size() == 2 && before.getListings().equals(List.of(original)),
+            "Earlier snapshots stay unchanged");
     }
 
     private static Listing listing(String id)
