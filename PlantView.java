@@ -13,6 +13,8 @@ import java.nio.file.Files;
 
 public class PlantView extends JPanel
 {
+    private static final long serialVersionUID = 1L;
+    private boolean busy;
     /**
      * Data field declarations.
      * Creates the panel and button objects.
@@ -80,7 +82,7 @@ public class PlantView extends JPanel
         mainPanel.add(cartPanel);
 
         add(selectImageButton, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
+        add(new JScrollPane(mainPanel), BorderLayout.CENTER);
 
         JPanel buttomPanel = new JPanel(new BorderLayout());
         buttomPanel.add(statusLabel, BorderLayout.CENTER);
@@ -162,6 +164,7 @@ public class PlantView extends JPanel
             listingPanel.add(new JLabel(String.format("$%.2f", listing.getPriceCents() / 100.0)));
 
             JButton addButton = new JButton("Add to Cart");
+            addButton.setEnabled(!busy);
             addButton.addActionListener(e ->
                 {
                     if (controller != null)
@@ -214,8 +217,22 @@ public class PlantView extends JPanel
      */
     public void setBusy(boolean busy)
     {
+        this.busy = busy;
         selectImageButton.setEnabled(!busy);
         checkoutButton.setEnabled(!busy);
+        for (Component component : shoppingPanel.getComponents())
+        {
+            if (component instanceof JPanel)
+            {
+                for (Component child : ((JPanel)component).getComponents())
+                {
+                    if (child instanceof JButton)
+                    {
+                        child.setEnabled(!busy);
+                    }
+                }
+            }
+        }
 
         statusLabel.setText(busy ? "Processing...." : "Ready");
     }
