@@ -4,7 +4,7 @@
  * @version November 11, 2026
  */
 
-public class Listing {
+public final class Listing {
     /**
      * Data field declarations.
      */

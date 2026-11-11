@@ -4,7 +4,7 @@
  * @version November 11, 2026
  */
 
-public class Identification 
+public final class Identification 
 {
     /**
      * Data field declarations.

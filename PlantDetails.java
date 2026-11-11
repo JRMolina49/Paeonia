@@ -4,7 +4,7 @@
  * @version November 11, 2026
  */
 
-public class PlantDetails {
+public final class PlantDetails {
     /**
      * Data field declarations.
      */

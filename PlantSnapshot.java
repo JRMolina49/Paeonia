@@ -10,7 +10,7 @@
 import java.util.List;
 import java.util.Optional;
 
-public class PlantSnapshot {
+public final class PlantSnapshot {
     private final Optional<PlantDetails> plant;
     private final List<Listing> listings;
     private final List<CartItem> cart;

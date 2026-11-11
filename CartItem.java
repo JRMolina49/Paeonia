@@ -4,7 +4,7 @@
  * @version November 11, 2026
  */
 
-public class CartItem {
+public final class CartItem {
     /**
      * Data field declaration
      */

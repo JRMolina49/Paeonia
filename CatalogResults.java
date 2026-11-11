@@ -9,7 +9,7 @@
  */
 import java.util.List;
 
-public class CatalogResults {
+public final class CatalogResults {
     /**
      * Data field declarations 
      */
