@@ -50,10 +50,10 @@ public class LocalPlantCatalog implements PlantCatalog {
     /**
      * Method to look up a plant in the catalog by its species ID.
      * @param speciesId : The specific identification of the plant species.
-     * @return CatalogResults object containing the care text and listings for the specified plant.
+     * @return CatalogResult object containing the care text and listings for the specified plant.
      */
     @Override
-    public CatalogResults lookup(String speciesId)
+    public CatalogResult lookup(String speciesId)
     {
         if (speciesId == null || speciesId.isBlank())
         {
@@ -65,7 +65,7 @@ public class LocalPlantCatalog implements PlantCatalog {
         // Return an empty result if the species is not in the catalog.
         if (plant == null)
         {
-            return new CatalogResults("", List.of());
+            return new CatalogResult("", List.of());
         }
 
         List<Listing> matchingListings = new ArrayList<>();
@@ -83,7 +83,7 @@ public class LocalPlantCatalog implements PlantCatalog {
             }
         }
 
-        return new CatalogResults(plant.getCareText(), matchingListings);
+        return new CatalogResult(plant.getCareText(), matchingListings);
     }
 }
 

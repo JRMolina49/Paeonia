@@ -1,13 +1,11 @@
 /**
  * Immutable class for a buyable listing of a species.
  * @author Joshua Molina (joshm05)
+ * @author Conrad
  * @version November 11, 2026
  */
-
-public final class Listing {
-    /**
-     * Data field declarations.
-     */
+public final class Listing
+{
     private final String id;
     private final String speciesId;
     private final String displayName;
@@ -21,14 +19,35 @@ public final class Listing {
      * @param speciesId : The specific identification of the plant species.
      * @param displayName : The name shown on screen.
      * @param category : The categorization of the plant species.
-     * @param priceCents : The cost of the plant. 
+     * @param priceCents : The cost of the plant.
+     * @throws IllegalArgumentException if a required value is invalid
      */
     public Listing(String id, String speciesId, String displayName, String category, int priceCents)
     {
+        if (id == null || id.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid id");
+        }
         this.id = id;
+        if (speciesId == null || speciesId.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid speciesId");
+        }
         this.speciesId = speciesId;
+        if (displayName == null || displayName.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid displayName");
+        }
         this.displayName = displayName;
+        if (category == null || category.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid category");
+        }
         this.category = category;
+        if (priceCents < 0)
+        {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
         this.priceCents = priceCents;
     }
 
@@ -71,7 +90,7 @@ public final class Listing {
     /**
      * Getter method for the priceCents variable.
      * @return the cost of the plant.
-     */ 
+     */
     public int getPriceCents()
     {
         return priceCents;
