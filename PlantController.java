@@ -42,7 +42,7 @@ public class PlantController {
             SwingUtilities.invokeLater(() -> {
                 PlantView view = new PlantView();
                 PlantController controller = new PlantController(model, view);
-                
+
                 // The view forwards user events to this controller
                 view.render(model.snapshot());
             });
@@ -101,7 +101,7 @@ public class PlantController {
     public void checkoutNext() {
         try {
             CartItem item = model.checkoutNext();
-            view.showMessage("Checked out: " + item.listings().displayName());
+            view.showMessage("Checked out: " + item.getListing().getDisplayName());
             view.render(model.snapshot());
         } catch (NoSuchElementException e) {
             view.showMessage("Your cart is empty");
