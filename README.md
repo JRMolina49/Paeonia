@@ -2,8 +2,6 @@
 
 Group 60: Jamie, Conrad, Josh, Andrew
 
-> Replace every `<angle bracket>` item before submitting. Delete this line.
-
 ## How to Run
 
 **Model only (no view required)**
