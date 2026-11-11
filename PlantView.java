@@ -1,3 +1,11 @@
+/**
+ * Swing class for the View features of the Paeonia application.
+ * Acts as the GUI interface.
+ * @author Joshua Molina (joshm05)
+ * @author Conrad
+ * @version November 11, 2026
+ */
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -5,6 +13,10 @@ import java.nio.file.Files;
 
 public class PlantView extends JPanel
 {
+    /**
+     * Data field declarations.
+     * Creates the panel and button objects.
+     */
     private JButton selectImageButton;
     private JButton checkoutButton;
 
@@ -16,10 +28,15 @@ public class PlantView extends JPanel
 
     private PlantController controller;
 
+    /**
+     * Constructor method for the PlantView class.
+     */
     public PlantView()
     {
         setLayout(new BorderLayout());
-
+        /**
+         * Sets up the main image components and layout.
+         */
         JPanel mainPanel = new JPanel(new GridLayout(3, 1));
 
         plantDetailsPanel = new JPanel();
@@ -34,21 +51,30 @@ public class PlantView extends JPanel
         selectImageButton = new JButton("Select Plant Image");
         selectImageButton.addActionListener(e -> chooseImage());
 
+        /**
+         * Checkout button triggers the controller's checkoutNext method.
+         */
         checkoutButton = new JButton("Checkout");
-        checkoutButton.addActionListener(e -> 
+        checkoutButton.addActionListener(e ->
             {
-            if (controller != null) 
-                { 
+            if (controller != null)
+                {
                     controller.checkoutNext();
                 }
             });
-        
+
         statusLabel = new JLabel("Ready");
 
+        /**
+         * Creates borders with labels for each main panel.
+         */
         plantDetailsPanel.setBorder(BorderFactory.createTitledBorder("Plant Information"));
         shoppingPanel.setBorder(BorderFactory.createTitledBorder("Available Plants"));
         cartPanel.setBorder(BorderFactory.createTitledBorder("Shopping Cart"));
 
+        /**
+         * Adds the plant detail, shopping, and cart layouts to the main panel.
+         */
         mainPanel.add(plantDetailsPanel);
         mainPanel.add(shoppingPanel);
         mainPanel.add(cartPanel);
@@ -63,11 +89,18 @@ public class PlantView extends JPanel
         add(buttomPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Setter method for the controller variable.
+     * @param controller : The controller feature that allows user interactivity.
+     */
     public void setController(PlantController controller)
     {
         this.controller = controller;
     }
 
+    /**
+     * Allows for the user to insert a saved image for identification.
+     */
     private void chooseImage()
     {
         JFileChooser chooser = new JFileChooser();
@@ -90,6 +123,10 @@ public class PlantView extends JPanel
         }
     }
 
+    /**
+     * Renders plant details, listings, and cart contents.
+     * @param snapshot the current plant, listing, and cart state
+     */
     public void render(PlantSnapshot snapshot)
     {
         if (snapshot == null)
@@ -98,25 +135,34 @@ public class PlantView extends JPanel
             return;
         }
 
+        /**
+         * Resets information contained within the panels.
+         */
         plantDetailsPanel.removeAll();
         shoppingPanel.removeAll();
         cartPanel.removeAll();
 
+        /**
+         * Checks if snapshot contains items, then logs them to the panel.
+         */
         for (PlantDetails plant : snapshot.getPlant())
         {
             plantDetailsPanel.add(new JLabel("Plant: " + plant.getCommonName()));
-            plantDetailsPanel.add(new JLabel("Scienetific Name: " + plant.getScientificName()));
+            plantDetailsPanel.add(new JLabel("Scientific Name: " + plant.getScientificName()));
             plantDetailsPanel.add(new JLabel("Care Instructions: " + plant.getCareText()));
         }
 
+        /**
+         * Logs informations within the listings to the listing panel.
+         */
         for (Listing listing : snapshot.getListings())
         {
             JPanel listingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             listingPanel.add(new JLabel(listing.getDisplayName()));
             listingPanel.add(new JLabel(String.format("$%.2f", listing.getPriceCents() / 100.0)));
-            
+
             JButton addButton = new JButton("Add to Cart");
-            addButton.addActionListener(e -> 
+            addButton.addActionListener(e ->
                 {
                     if (controller != null)
                     {
@@ -127,6 +173,9 @@ public class PlantView extends JPanel
             shoppingPanel.add(listingPanel);
         }
 
+        /**
+         * Logs information within the cart to the cart panel.
+         */
         for (CartItem item : snapshot.getCart())
         {
             Listing listing = item.getListing();
@@ -134,6 +183,9 @@ public class PlantView extends JPanel
             cartPanel.add(new JLabel(listing.getDisplayName()));
         }
 
+        /**
+         * Revalidates and repaints the panels with the new information.
+         */
         plantDetailsPanel.revalidate();
         plantDetailsPanel.repaint();
         shoppingPanel.revalidate();
@@ -142,6 +194,10 @@ public class PlantView extends JPanel
         cartPanel.repaint();
     }
 
+    /**
+     * Displays given dialog and error messages.
+     * @param message : Contained details and correspondents on processes and errors.
+     */
     public void showMessage(String message)
     {
         if (message == null || message.isBlank())
@@ -151,7 +207,11 @@ public class PlantView extends JPanel
 
         JOptionPane.showMessageDialog(this, message, "Plant Application", JOptionPane.INFORMATION_MESSAGE);
     }
-    
+
+    /**
+     * Sets the application as busy during a process.
+     * @param busy : boolean expression to determine if a process is running.
+     */
     public void setBusy(boolean busy)
     {
         selectImageButton.setEnabled(!busy);

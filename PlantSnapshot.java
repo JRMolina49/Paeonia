@@ -1,10 +1,10 @@
 import java.util.List;
 
 /**
- * An immutable copy of the current plant, listing, and cart state.
- *
- * @author Josh (original data classes)
+ * Immutable class for the full details and listings of a plant.
+ * @author Joshua Molina (joshm05)
  * @author Conrad
+ * @version November 11, 2026
  */
 public final class PlantSnapshot
 {
@@ -13,10 +13,10 @@ public final class PlantSnapshot
     private final List<CartItem> cart;
 
     /**
-     * Creates a validated value object.
-     * @param plant the plant value
-     * @param listings the listings value
-     * @param cart the cart value
+     * Constructor method for the PlantSnapshot class.
+     * @param plant : Immutable list housing the information of a specific plant.
+     * @param listings : List container housing the listings of the plant.
+     * @param cart : List container housing the items within the cart.
      * @throws IllegalArgumentException if a required value is invalid
      */
     public PlantSnapshot(List<PlantDetails> plant, List<Listing> listings, List<CartItem> cart)
@@ -39,8 +39,8 @@ public final class PlantSnapshot
     }
 
     /**
-     * Returns the plant value.
-     * @return the plant value
+     * Getter method for the plant variable.
+     * @return Immutable list housing the information of a specific plant.
      */
     public List<PlantDetails> getPlant()
     {
@@ -48,8 +48,8 @@ public final class PlantSnapshot
     }
 
     /**
-     * Returns the listings value.
-     * @return the listings value
+     * Getter method for the listings variable.
+     * @return List container housing the listings of the plant.
      */
     public List<Listing> getListings()
     {
@@ -57,8 +57,8 @@ public final class PlantSnapshot
     }
 
     /**
-     * Returns the cart value.
-     * @return the cart value
+     * Getter method for the cart variable.
+     * @return List container housing the items within the cart.
      */
     public List<CartItem> getCart()
     {

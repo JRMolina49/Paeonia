@@ -1,10 +1,10 @@
 import java.util.List;
 
 /**
- * Care information and available listings for a species.
- *
- * @author Josh (original data classes)
+ * Immutable class for the catalog.
+ * @author Joshua Molina (joshm05)
  * @author Conrad
+ * @version November 11, 2026
  */
 public final class CatalogResult
 {
@@ -12,9 +12,10 @@ public final class CatalogResult
     private final List<Listing> listings;
 
     /**
-     * Creates a validated value object.
-     * @param careText the careText value
-     * @param listings the listings value
+     * Constructor method for the CatalogResult class.
+     * Sets the catalog as the passed information
+     * @param careText : Text on how to care for the specified plant.
+     * @param listings : List containing the listings for the specified plant.
      * @throws IllegalArgumentException if a required value is invalid
      */
     public CatalogResult(String careText, List<Listing> listings)
@@ -32,8 +33,8 @@ public final class CatalogResult
     }
 
     /**
-     * Returns the careText value.
-     * @return the careText value
+     * Getter method for the careText variable.
+     * @return the text on how to care for an individual plant.
      */
     public String getCareText()
     {
@@ -41,8 +42,8 @@ public final class CatalogResult
     }
 
     /**
-     * Returns the listings value.
-     * @return the listings value
+     * Getter method for the listings variable.
+     * @return list of plant listings.
      */
     public List<Listing> getListings()
     {

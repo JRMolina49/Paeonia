@@ -1,8 +1,8 @@
 /**
- * An available catalog listing with its price in cents.
- *
- * @author Josh (original data classes)
+ * Immutable class for a buyable listing of a species.
+ * @author Joshua Molina (joshm05)
  * @author Conrad
+ * @version November 11, 2026
  */
 public final class Listing
 {
@@ -13,12 +13,13 @@ public final class Listing
     private final int priceCents;
 
     /**
-     * Creates a validated value object.
-     * @param id the id value
-     * @param speciesId the speciesId value
-     * @param displayName the displayName value
-     * @param category the category value
-     * @param priceCents the priceCents value
+     * Constructor method for the Listing class.
+     * Creates a Listing object containing the passed information on the plant.
+     * @param id : The specific identification of the listing.
+     * @param speciesId : The specific identification of the plant species.
+     * @param displayName : The name shown on screen.
+     * @param category : The categorization of the plant species.
+     * @param priceCents : The cost of the plant.
      * @throws IllegalArgumentException if a required value is invalid
      */
     public Listing(String id, String speciesId, String displayName, String category, int priceCents)
@@ -51,8 +52,8 @@ public final class Listing
     }
 
     /**
-     * Returns the id value.
-     * @return the id value
+     * Getter method for the id variable
+     * @return the specific identification of the listing.
      */
     public String getId()
     {
@@ -60,8 +61,8 @@ public final class Listing
     }
 
     /**
-     * Returns the speciesId value.
-     * @return the speciesId value
+     * Getter method for the speciesId variable.
+     * @return the specific identification of the plant species.
      */
     public String getSpeciesId()
     {
@@ -69,8 +70,8 @@ public final class Listing
     }
 
     /**
-     * Returns the displayName value.
-     * @return the displayName value
+     * Getter method for the displayName variable.
+     * @return the name shown on screen.
      */
     public String getDisplayName()
     {
@@ -78,8 +79,8 @@ public final class Listing
     }
 
     /**
-     * Returns the category value.
-     * @return the category value
+     * Getter method for the category variable.
+     * @return the categorization of the plant species.
      */
     public String getCategory()
     {
@@ -87,8 +88,8 @@ public final class Listing
     }
 
     /**
-     * Returns the priceCents value.
-     * @return the priceCents value
+     * Getter method for the priceCents variable.
+     * @return the cost of the plant.
      */
     public int getPriceCents()
     {

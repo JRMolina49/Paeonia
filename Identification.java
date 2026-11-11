@@ -1,8 +1,8 @@
 /**
- * A plant identification returned by an identification service.
- *
- * @author Josh (original data classes)
+ * Immutable class for the indentifying features of a plant.
+ * @author Joshua Molina (joshm05)
  * @author Conrad
+ * @version November 11, 2026
  */
 public final class Identification
 {
@@ -12,11 +12,12 @@ public final class Identification
     private final double confidence;
 
     /**
-     * Creates a validated value object.
-     * @param speciesId the speciesId value
-     * @param scientificName the scientificName value
-     * @param commonName the commonName value
-     * @param confidence the confidence value
+     * Constructor method for the Identification class.
+     * Creates a Indentification object with the passed information.
+     * @param speciesId : The specific identification of the species.
+     * @param scientificName : The species' scientific name.
+     * @param commonName : The species' colloquial name.
+     * @param confidence : The level of confidence in the indentification of the species
      * @throws IllegalArgumentException if a required value is invalid
      */
     public Identification(String speciesId, String scientificName, String commonName, double confidence)
@@ -44,8 +45,8 @@ public final class Identification
     }
 
     /**
-     * Returns the speciesId value.
-     * @return the speciesId value
+     * Getter method for the speciesId variable.
+     * @return the id of the species.
      */
     public String getSpeciesId()
     {
@@ -53,8 +54,8 @@ public final class Identification
     }
 
     /**
-     * Returns the scientificName value.
-     * @return the scientificName value
+     * Getter method for the scientificName variable.
+     * @return the scientific name of the species.
      */
     public String getScientificName()
     {
@@ -62,8 +63,8 @@ public final class Identification
     }
 
     /**
-     * Returns the commonName value.
-     * @return the commonName value
+     * Getter method for the commonName variable
+     * @return the common name of the species.
      */
     public String getCommonName()
     {
@@ -71,8 +72,8 @@ public final class Identification
     }
 
     /**
-     * Returns the confidence value.
-     * @return the confidence value
+     * Getter method for the confidence variable.
+     * @return the confidence that a specific plant has been identified.
      */
     public double getConfidence()
     {

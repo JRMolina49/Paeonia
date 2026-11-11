@@ -1,8 +1,8 @@
 /**
- * An identified plant together with its care information.
- *
- * @author Josh (original data classes)
+ * Immutable class for the details of a particular plant.
+ * @author Joshua Molina (joshm05)
  * @author Conrad
+ * @version November 11, 2026
  */
 public final class PlantDetails
 {
@@ -13,12 +13,13 @@ public final class PlantDetails
     private final double confidence;
 
     /**
-     * Creates a validated value object.
-     * @param speciesId the speciesId value
-     * @param scientificName the scientificName value
-     * @param commonName the commonName value
-     * @param careText the careText value
-     * @param confidence the confidence value
+     * Constructor method for the PlantDetails class.
+     * Creates a PlantDetails object containing all the information passed into it.
+     * @param speciesId : Specific identification of the plant species.
+     * @param scientificName : Scientific name of the plant species.
+     * @param commonName : Common name of the plant species.
+     * @param careText : Text on how to care for the specific plant.
+     * @param confidence : Confidence level of the accuracy of the identification.
      * @throws IllegalArgumentException if a required value is invalid
      */
     public PlantDetails(String speciesId, String scientificName, String commonName, String careText, double confidence)
@@ -51,8 +52,8 @@ public final class PlantDetails
     }
 
     /**
-     * Returns the speciesId value.
-     * @return the speciesId value
+     * Getter method for the speciesId variable.
+     * @return specific identification of the plant species.
      */
     public String getSpeciesId()
     {
@@ -60,8 +61,8 @@ public final class PlantDetails
     }
 
     /**
-     * Returns the scientificName value.
-     * @return the scientificName value
+     * Getter method for the scientificName variable.
+     * @return scientific name of the plant species.
      */
     public String getScientificName()
     {
@@ -69,8 +70,8 @@ public final class PlantDetails
     }
 
     /**
-     * Returns the commonName value.
-     * @return the commonName value
+     * Getter method for the commonName variable.
+     * @return common name of the plant species.
      */
     public String getCommonName()
     {
@@ -78,8 +79,8 @@ public final class PlantDetails
     }
 
     /**
-     * Returns the careText value.
-     * @return the careText value
+     * Getter method for the careText variable.
+     * @return text on how to care for the specific plant.
      */
     public String getCareText()
     {
@@ -87,8 +88,8 @@ public final class PlantDetails
     }
 
     /**
-     * Returns the confidence value.
-     * @return the confidence value
+     * Getter method for the confidence variable.
+     * @return confidence level of the accuracy of the identification.
      */
     public double getConfidence()
     {
