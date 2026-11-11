@@ -1,7 +1,8 @@
 /**
- * Immutable class for the View features of the Paeonia application.
+ * Swing class for the View features of the Paeonia application.
  * Acts as the GUI interface.
  * @author Joshua Molina (joshm05)
+ * @author Conrad
  * @version November 11, 2026
  */
 
@@ -54,14 +55,14 @@ public class PlantView extends JPanel
          * Checkout button triggers the controller's checkoutNext method.
          */
         checkoutButton = new JButton("Checkout");
-        checkoutButton.addActionListener(e -> 
+        checkoutButton.addActionListener(e ->
             {
-            if (controller != null) 
-                { 
+            if (controller != null)
+                {
                     controller.checkoutNext();
                 }
             });
-        
+
         statusLabel = new JLabel("Ready");
 
         /**
@@ -113,7 +114,7 @@ public class PlantView extends JPanel
 
                 if (controller != null)
                 {
-                    controller.identiyPhoto(image);
+                    controller.identifyPhoto(image);
                 }
             } catch (IOException e)
             {
@@ -123,10 +124,10 @@ public class PlantView extends JPanel
     }
 
     /**
-     * Renders a image of the main screen.
-     * @param snapshot : Snapshot containing all the details of a 
+     * Renders plant details, listings, and cart contents.
+     * @param snapshot the current plant, listing, and cart state
      */
-    public void render(PlantSnapshot snapshot) 
+    public void render(PlantSnapshot snapshot)
     {
         if (snapshot == null)
         {
@@ -144,12 +145,12 @@ public class PlantView extends JPanel
         /**
          * Checks if snapshot contains items, then logs them to the panel.
          */
-        snapshot.getPlant().ifPresent(plant -> 
-            {
+        for (PlantDetails plant : snapshot.getPlant())
+        {
             plantDetailsPanel.add(new JLabel("Plant: " + plant.getCommonName()));
             plantDetailsPanel.add(new JLabel("Scientific Name: " + plant.getScientificName()));
             plantDetailsPanel.add(new JLabel("Care Instructions: " + plant.getCareText()));
-            });
+        }
 
         /**
          * Logs informations within the listings to the listing panel.
@@ -159,9 +160,9 @@ public class PlantView extends JPanel
             JPanel listingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             listingPanel.add(new JLabel(listing.getDisplayName()));
             listingPanel.add(new JLabel(String.format("$%.2f", listing.getPriceCents() / 100.0)));
-            
+
             JButton addButton = new JButton("Add to Cart");
-            addButton.addActionListener(e -> 
+            addButton.addActionListener(e ->
                 {
                     if (controller != null)
                     {
@@ -206,7 +207,7 @@ public class PlantView extends JPanel
 
         JOptionPane.showMessageDialog(this, message, "Plant Application", JOptionPane.INFORMATION_MESSAGE);
     }
-    
+
     /**
      * Sets the application as busy during a process.
      * @param busy : boolean expression to determine if a process is running.

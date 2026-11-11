@@ -1,45 +1,55 @@
+import java.util.List;
+
 /**
  * Immutable class for the full details and listings of a plant.
  * @author Joshua Molina (joshm05)
+ * @author Conrad
  * @version November 11, 2026
  */
-
-/**
- * Imports List and Optional containers.
- */
-import java.util.List;
-import java.util.Optional;
-
-public class PlantSnapshot {
-    private final Optional<PlantDetails> plant;
+public final class PlantSnapshot
+{
+    private final List<PlantDetails> plant;
     private final List<Listing> listings;
     private final List<CartItem> cart;
 
     /**
      * Constructor method for the PlantSnapshot class.
-     * @param plant : Optional container housing the information of a specific plant.
-     * @param listings : List container housing the listings of the plant. 
+     * @param plant : Immutable list housing the information of a specific plant.
+     * @param listings : List container housing the listings of the plant.
      * @param cart : List container housing the items within the cart.
+     * @throws IllegalArgumentException if a required value is invalid
      */
-    public PlantSnapshot(Optional<PlantDetails> plant, List<Listing> listings, List<CartItem> cart)
+    public PlantSnapshot(List<PlantDetails> plant, List<Listing> listings, List<CartItem> cart)
     {
-        this.plant = plant;
-        this.listings = listings;
-        this.cart = cart;
+        if (plant == null || plant.stream().anyMatch(item -> item == null))
+        {
+            throw new IllegalArgumentException("plant must contain non-null values");
+        }
+        this.plant = List.copyOf(plant);
+        if (listings == null || listings.stream().anyMatch(item -> item == null))
+        {
+            throw new IllegalArgumentException("listings must contain non-null values");
+        }
+        this.listings = List.copyOf(listings);
+        if (cart == null || cart.stream().anyMatch(item -> item == null))
+        {
+            throw new IllegalArgumentException("cart must contain non-null values");
+        }
+        this.cart = List.copyOf(cart);
     }
 
     /**
      * Getter method for the plant variable.
-     * @return Optional container housing the information of a specific plant.
+     * @return Immutable list housing the information of a specific plant.
      */
-    public Optional<PlantDetails> getPlant()
+    public List<PlantDetails> getPlant()
     {
         return plant;
     }
 
     /**
      * Getter method for the listings variable.
-     * @return List container housing the listings of the plant. 
+     * @return List container housing the listings of the plant.
      */
     public List<Listing> getListings()
     {

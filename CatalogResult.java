@@ -1,33 +1,37 @@
+import java.util.List;
+
 /**
  * Immutable class for the catalog.
  * @author Joshua Molina (joshm05)
+ * @author Conrad
  * @version November 11, 2026
  */
-
-/**
- * Imports for the List container.
- */
-import java.util.List;
-
-public class CatalogResults {
-    /**
-     * Data field declarations 
-     */
+public final class CatalogResult
+{
     private final String careText;
     private final List<Listing> listings;
 
     /**
-     * Constructor method for the CatalogResults class.
-     * Sets the catalog as the passed information 
+     * Constructor method for the CatalogResult class.
+     * Sets the catalog as the passed information
      * @param careText : Text on how to care for the specified plant.
      * @param listings : List containing the listings for the specified plant.
+     * @throws IllegalArgumentException if a required value is invalid
      */
-    public CatalogResults(String careText, List<Listing> listings)
+    public CatalogResult(String careText, List<Listing> listings)
     {
+        if (careText == null)
+        {
+            throw new IllegalArgumentException("Invalid careText");
+        }
         this.careText = careText;
-        this.listings = listings;
+        if (listings == null || listings.stream().anyMatch(item -> item == null))
+        {
+            throw new IllegalArgumentException("listings must contain non-null values");
+        }
+        this.listings = List.copyOf(listings);
     }
-    
+
     /**
      * Getter method for the careText variable.
      * @return the text on how to care for an individual plant.

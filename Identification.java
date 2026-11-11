@@ -1,14 +1,11 @@
 /**
  * Immutable class for the indentifying features of a plant.
  * @author Joshua Molina (joshm05)
+ * @author Conrad
  * @version November 11, 2026
  */
-
-public class Identification 
+public final class Identification
 {
-    /**
-     * Data field declarations.
-     */
     private final String speciesId;
     private final String scientificName;
     private final String commonName;
@@ -21,12 +18,29 @@ public class Identification
      * @param scientificName : The species' scientific name.
      * @param commonName : The species' colloquial name.
      * @param confidence : The level of confidence in the indentification of the species
+     * @throws IllegalArgumentException if a required value is invalid
      */
     public Identification(String speciesId, String scientificName, String commonName, double confidence)
     {
+        if (speciesId == null || speciesId.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid speciesId");
+        }
         this.speciesId = speciesId;
+        if (scientificName == null || scientificName.isBlank())
+        {
+            throw new IllegalArgumentException("Invalid scientificName");
+        }
         this.scientificName = scientificName;
+        if (commonName == null)
+        {
+            throw new IllegalArgumentException("Invalid commonName");
+        }
         this.commonName = commonName;
+        if (!Double.isFinite(confidence) || confidence < 0.0 || confidence > 1.0)
+        {
+            throw new IllegalArgumentException("Confidence must be between zero and one");
+        }
         this.confidence = confidence;
     }
 
@@ -65,5 +79,4 @@ public class Identification
     {
         return confidence;
     }
-    
 }
