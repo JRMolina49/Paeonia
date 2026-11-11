@@ -87,15 +87,22 @@ public final class PlantViewTest
         PlantView view = new PlantView();
         JButton select = button(view, "Select Plant Image");
         JButton checkout = button(view, "Checkout");
+        PlantSnapshot populated = new PlantSnapshot(List.of(),
+            List.of(TestSupport.listing()), List.of());
+        view.render(populated);
         TestSupport.check(select.isEnabled() && checkout.isEnabled()
             && hasLabel(view, "Ready"), "Initially ready");
         view.setBusy(true);
         TestSupport.check(!select.isEnabled() && !checkout.isEnabled(),
             "Busy state disables image selection and checkout");
+        TestSupport.check(!button(view, "Add to Cart").isEnabled(), "Disable listing buttons while busy");
+        view.render(populated);
+        TestSupport.check(!button(view, "Add to Cart").isEnabled(), "New listing buttons respect busy state");
         TestSupport.check(!hasLabel(view, "Ready"), "Busy status replaces ready status");
         view.setBusy(false);
         TestSupport.check(select.isEnabled() && checkout.isEnabled()
             && hasLabel(view, "Ready"), "Restore ready state");
+        TestSupport.check(button(view, "Add to Cart").isEnabled(), "Restore listing buttons");
     }
 
     private static void checkMessages()
