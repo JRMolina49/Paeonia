@@ -4,11 +4,21 @@ Group 60: Jamie, Conrad, Josh, Andrew
 
 ## Project overview
 
-Paeonia is a plant-identification and shopping application. The work from
-`Josh_Branch` and `Conrad_Branch` has been merged into `main`, and
-`PlantController.java` has since been added there. The repository has the main
-MVC components, but the application is not yet buildable end to end because
-some classes referenced by the controller are still missing.
+Paeonia is a plant-identification and shopping application. `Josh_Branch` contains the Swing view and immutable data classes.
+`Conrad_Branch` contains the model, service interfaces, and model tests. Neither
+branch currently has a complete runnable application: the view expects a
+controller, but no `PlantController` or application driver is present in the
+branch trees checked.
+
+### Where the model is
+
+The model implementation is on `Conrad_Branch`, not `Josh_Branch`. I verified
+this by compiling a clean export of `Conrad_Branch` and running its ten
+non-view test programs; all ten passed, including `PlantModelTest`. This
+confirms the model can be exercised through its tests with injected test
+services. It does not mean the full application can launch: there is no
+application driver or production service implementation, and `PlantViewTest`
+cannot compile until the missing controller is added.
 
 ## Project structure
 
@@ -17,67 +27,64 @@ The Java files currently live in the repository root rather than in separate
 
 | Area | Files | Responsibility |
 |---|---|---|
-| Plant and listing data | `Identification.java`, `PlantDetails.java`, `Listing.java`, `CartItem.java`, `CatalogResult.java` | Hold identification, care, catalog, and cart data. |
-| Model state and queue | `PlantModel.java`, `PlantSnapshot.java`, `LinkedQueue.java` | Identify plants through injected services, manage listings and the FIFO cart, and expose state snapshots. |
-| Service contracts | `PlantIdentifier.java`, `PlantCatalog.java` | Define interfaces for image identification and catalog lookups. |
+| Plant and listing data | `Identification.java`, `PlantDetails.java`, `Listing.java`, `CartItem.java`, `CatalogResults.java` | Hold identification, care, catalog, and cart data. |
+| View state | `PlantSnapshot.java` | Carries an optional identified plant, available listings, and cart contents to the view. |
 | Swing UI | `PlantView.java` | Displays plant details, available listings, and cart contents; lets the user choose an image and invokes controller actions. |
-| Controller | `PlantController.java` | Coordinates UI actions with the model and refreshes the view. Its `main` method is intended to start the application. |
-| Tests | `tests/` | Standalone Java test programs cover the data classes, queue, model, services, and view. |
+| Controller | Not present on `Josh_Branch` | Needed to connect the view to the model and handle its image, add-to-cart, and checkout actions. |
+| Model, services, and driver | Not present on `Josh_Branch` | Needed for identification, catalog lookup, application startup, and model behavior. |
 
 ### View/controller integration status
 
 `PlantView` declares `setController(PlantController)` and calls controller
 operations for image identification, adding a listing to the cart, and
-checkout. `PlantController.java` is now present on `main` and supplies those
-actions. However, the controller's startup code references
-`PlantNetIdentifier`, `LocalPlantCatalog`, and `ServiceException`, which are
-not present in the current `main` tree. The controller also needs to be checked
-against the current data-class APIs before the complete application can build
-and run.
+checkout. However, `PlantController.java` is not present in the latest
+`Josh_Branch` commit available on GitHub, and no open pull request adds it.
+Consequently, the view cannot compile as a complete application on this branch.
+When the controller is added, its public method names and snapshot contract
+should be aligned with the calls in `PlantView`.
 
 ## Reflection
 
 ### Design and implementation
 
 - The data classes separate plant-identification and shopping data from the UI.
-- `PlantSnapshot` contains lists of plant details, available listings, and cart
-  items. Empty lists represent a state with no identified plants or cart items.
-- `PlantModel` depends on `PlantIdentifier` and `PlantCatalog` interfaces,
-  keeping service implementations outside the model and allowing test doubles.
+- `PlantSnapshot` uses `Optional<PlantDetails>` for the identified plant and
+  lists for available listings and cart items. This lets the view represent
+  the state where no plant has been identified yet.
 - `PlantView` uses Swing panels for plant information, available plants, and
   the cart. It renders a `PlantSnapshot`, shows a status label, and provides
   controls for selecting an image, adding a listing, and checking out.
-- `PlantController` now provides the intended view-to-model coordination.
-  Integration is incomplete until its missing service dependencies and API
-  mismatches are resolved.
+- The view is structured to delegate application actions to a controller
+  rather than implement identification or cart rules itself. That boundary
+  still needs a controller and model implementation to be complete.
 
 ### Did the model stand alone?
 
-`PlantModel` has no view or controller dependency. Its ten non-view test
-programs compiled and passed on `Conrad_Branch`, using injected test services.
-This confirms the model is independently testable; it does not establish that
-the full application builds. `PlantController` has since been added to `main`,
-but the missing controller dependencies still prevent a complete launch.
+On `Conrad_Branch`, `PlantModel` has no view or controller dependency and its
+tests run independently with injected test services. The model is therefore
+testable on its own, but the full application is not yet runnable or integrated
+with the Swing view. `Josh_Branch` contains the view and data classes, but not
+the model implementation.
 
 ### What remains uncertain or incomplete
 
 | Area | Status | Notes |
 |---|---|---|
-| Plant identification service | Interface present; implementation missing | `PlantIdentifier` defines the contract; `PlantNetIdentifier` is referenced by the controller but absent. |
-| Catalog and care lookup | Interface present; implementation missing | `PlantCatalog` defines the contract; `LocalPlantCatalog` is referenced by the controller but absent. |
-| Controller integration | Present but incomplete | `PlantController` exists, but references absent classes and must be verified against current model APIs. |
-| Application startup | Entry point present but not buildable | `PlantController.main()` is intended to launch the app; missing dependencies currently block it. |
-| Tests | Present | Ten non-view tests passed on `Conrad_Branch`. `PlantViewTest` was blocked by the then-missing controller; rerun it after the controller integration is fixed. |
+| Plant identification service | Interface only on `Conrad_Branch` | `PlantIdentifier` defines the contract; no production implementation is included. |
+| Catalog and care lookup | Interface only on `Conrad_Branch` | `PlantCatalog` defines the contract; no production implementation is included. |
+| Controller integration | Incomplete | `PlantView` references `PlantController`, but its source is absent from the branch trees checked. |
+| Application startup | Not present | There is no driver or entry point for launching the complete application. |
+| Tests | Present on `Conrad_Branch` | Ten non-view test programs compile and pass; `PlantViewTest` is blocked by the missing controller. `Josh_Branch` has no tests. |
 
 ## Next steps
 
-1. Add or restore the controller's missing `PlantNetIdentifier`,
-   `LocalPlantCatalog`, and `ServiceException` dependencies.
-2. Resolve any controller/model data API mismatches and wire the controller to
-   the view using `setController`.
-3. Compile the complete application and run `PlantViewTest` with the controller.
-4. Add or document a usable catalog and identifier configuration for running
-   the app outside the test doubles.
+1. Bring the model and its tests from `Conrad_Branch` together with the view and
+   data classes from `Josh_Branch`.
+2. Add the controller and align its method signatures with `PlantView` and the
+   model.
+3. Add production identifier/catalog implementations and an application entry
+   point that wires the view, controller, and model.
+4. Compile and run the view tests once controller integration is in place.
 
 ## Attribution
 
@@ -87,12 +94,14 @@ submission.
 
 | Files | Contributor | Evidence / contribution |
 |---|---|---|
-| `CartItem.java`, `CatalogResults.java`, `Identification.java`, `Listing.java`, `PlantDetails.java`, `PlantSnapshot.java` | Josh (JRMolina49) | First recorded in Josh's immutable-classes commit; later revisions are also recorded for several files. |
-| `PlantView.java` | Josh (JRMolina49) | First recorded in Josh's view commit and revised in later branch commits. |
-| `PlantModel.java`, service interfaces, queue, and model tests | Conrad (`Conrad_Branch`) | First recorded in Conrad's implementation commits; ten non-view tests were verified independently. |
-| `PlantController.java` | Andrew (AndyAtVT) | Added to `main` in commit `0046c41`; coordinate with Andrew to confirm any updates or additional review. |
-| `README.md` | Jamie | Existing project attribution; update if the team wants to credit additional authors or reviewers. |
+| `CartItem.java`, `CatalogResults.java`, `Identification.java`, `Listing.java`, `PlantDetails.java`, `PlantSnapshot.java` | Josh | Wrote and Revised |
+| `PlantView.java` | Josh | Wrote and revised |
+| `LinkedQueue.java` | Conrad | Wrote and revised |
+| `PlantIdentifier.java` | Josh | Wrote and revised |
+| `PlantModel.java` | Conrad | Wrote and revised |
+| Model, service interfaces, and tests | Conrad | Wrote and revised |
+| `PlantController.java` | Andrew | Written and Revised |
+| `README.md` | Jamie | Existing project attribution, wrote and revised by Jamie |
 
 **GenAI use:** AI assistance was used to inspect the branch and draft this
-README update. Add any other project-related GenAI use according to the team's
-actual work.
+README update.
