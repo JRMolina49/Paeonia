@@ -74,6 +74,8 @@ to the controller.
 | Application window | Opens separately | Running `PlantController.main()` opens the plant panel in a separate window. |
 | Tests | Present | Standalone tests cover the model and other project components; run them after verifying the current build setup. |
 
+**Note:** Some classes were changed and condensed for the sake of a working prototype so that we may test certain functionalities. These will be revised and implemented later on.
+
 ## Next steps
 
 1. In `PlantController.main()`, call `view.setController(controller)` so the
