@@ -1,20 +1,23 @@
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * JUnit checks for PlantIdentifier.
+ * Standalone checks for PlantIdentifier.
  * @author Conrad
  */
 public final class PlantIdentifierTest
 {
+    private PlantIdentifierTest()
+    {
+        // Utility class.
+    }
+
     /**
      * Runs the checks.
+     * @param args unused
      * @throws Exception if a check fails
      */
-    @Test
-    public void testContract() throws Exception
+    public static void main(String[] args) throws Exception
     {
         byte[] image = TestSupport.image();
         Identification identification = new Identification("species", "Scientific", "Common", 0.9);
@@ -41,5 +44,6 @@ public final class PlantIdentifierTest
         });
         TestSupport.expect(IllegalArgumentException.class, () -> noMatch.identify(image));
         TestSupport.check(noMatch.snapshot().getPlant().isEmpty(), "No match leaves empty state");
+        System.out.println("PlantIdentifierTest passed");
     }
 }

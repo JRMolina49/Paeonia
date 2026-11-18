@@ -44,10 +44,6 @@ public class LocalPlantCatalog implements PlantCatalog {
             detailsBySpecies.put(plant.getSpeciesId(), plant);
         }
 
-        if (listings.stream().anyMatch(listing -> listing == null))
-        {
-            throw new IllegalArgumentException("Listings cannot contain null values.");
-        }
         this.listings = List.copyOf(listings);
     }
 

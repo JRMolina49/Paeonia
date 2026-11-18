@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.time.Duration;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,26 +25,16 @@ public class PlantNetIdentifier implements PlantIdentifier {
 
     public PlantNetIdentifier(String apiKey)
     {
-        this(apiKey, HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5)).build(),
-            URI.create("https://my-api.plantnet.org/v2/identify/all"));
-    }
-
-    /** Allows local HTTP contract tests without calling PlantNet. */
-    PlantNetIdentifier(String apiKey, HttpClient client, URI endpoint)
-    {
         if (apiKey == null || apiKey.isBlank())
         {
             throw new IllegalArgumentException("API key cannot be null or blank.");
         }
 
         this.apiKey = apiKey;
-        if (client == null || endpoint == null)
-        {
-            throw new IllegalArgumentException("Client and endpoint are required.");
-        }
-        this.client = client;
-        this.endpoint = endpoint;
+        this.client = HttpClient.newHttpClient();
+        this.endpoint = URI.create(
+            "https://my-api.plantnet.org/v2/identify/all"
+        );
     }
 
     @Override
@@ -68,7 +57,6 @@ public class PlantNetIdentifier implements PlantIdentifier {
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(requestUrl))
-                .timeout(Duration.ofSeconds(20))
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(requestBody))
                 .build();
@@ -122,18 +110,6 @@ public class PlantNetIdentifier implements PlantIdentifier {
     }
 
     static List<Identification> parseResults(String json)
-    {
-        try
-        {
-            return parseResponse(json);
-        }
-        catch (RuntimeException exception)
-        {
-            throw new ServiceException("PlantNet returned invalid identification data.", exception);
-        }
-    }
-
-    private static List<Identification> parseResponse(String json)
     {
         JsonObject response = JsonParser.parseString(json).getAsJsonObject();
         JsonArray results = response.getAsJsonArray("results");
