@@ -193,6 +193,7 @@ by the view.
   have not been verified by the automated suite. Local HTTP tests check the
   request/response contract, not the live service.
 - Camera capture is not implemented; users select an image file.
+- PlantDex and location pinning are planned stretch goals and are not implemented yet.
 - The local catalog has only three species. Listings, prices, and checkout are
   sample data, with no real seller, order, or payment integration.
 - Cart contents are held in memory and disappear when the application closes.
@@ -202,24 +203,34 @@ by the view.
 
 ## Next Steps
 
-### Remaining work and proposed owners
+### Remaining work and owners
 
 | Priority | Remaining item | Owner |
 |---|---|---|
 | 1 | Verify live identification and reference-image attribution with known aloe, monstera, and peony images; check no-match and unavailable-service behavior. | Josh and Andrew |
-| 2 | Check view layout, unreadable files, repeated identification, and recovery after errors; retain disabled cart controls while requests run. | Josh and Andrew |
+| 2 | Improve the UI and check layout, unreadable files, repeated identification, and recovery after errors; retain disabled cart controls while requests run. | Conrad, with Josh and Andrew checking integration |
 | 3 | Review model/service edge cases and test contracts; manually check timeout recovery without losing previous results or cart items. | Conrad and Jamie |
-| 4 | Confirm the submitted D3 comparison, per-file attribution, final scope, and demo timing; package source, tests, and README together. | Jamie, with all members reviewing their contributions |
+| 4 | Implement and test PlantDex so identified plants can be collected and viewed. | Josh |
+| 5 | Implement and test location pinning for where plants were found. | Jamie and Andrew |
+| 6 | Confirm the submitted D3 comparison and per-file attribution; package source, tests, and README together. | Jamie, with all members reviewing their contributions |
+| 7 | Rehearse and present the timed demo, including any completed stretch goals. | Conrad |
 
 ### Stretch goals
 
-For the final build, the proposed commitments are reference photos with
-attribution, a usable offline demo, and reliable error recovery. We are dropping
-camera capture, persistent carts, a large catalog, and real seller/payment
-integration from this build. These choices keep the demonstration focused on
-the model, controller/view integration, and FIFO queue behavior.
+For the final build, the team is committing to **PlantDex** (Josh) and
+**location pinning** (Jamie and Andrew), as recorded in the newer team plan on
+`main`. These features are planned, not part of the current working prototype;
+each will need model-level normal/bad-input tests and a controller/view path.
+Conrad owns UI improvements and the demo.
+
+The existing reference photos, offline demo, and error recovery remain part of
+the build. Camera capture, persistent carts, a large catalog, and real
+seller/payment integration are outside the committed final-build scope.
 
 ### Three-minute demo
+
+Conrad will present the demo. PlantDex and location pinning can be added to the
+walkthrough once implemented, while keeping the total within three minutes.
 
 Prepare the API key, a known catalog-species image, and an unreadable image file
 before the demo. Start live mode before presenting; allow at most 20 seconds for
@@ -280,14 +291,14 @@ attribution; contributions made outside Git still need confirmation by the team.
 | `tests/ServiceExceptionTest.java` | Conrad | Wrote message/cause checks. |
 | `tests/TestSupport.java` | Conrad | Wrote shared assertions, fixtures, and image data for tests. |
 | `pom.xml` | Josh; Conrad | Josh added the Maven/Gson build; Conrad configured JUnit and test discovery. |
-| `README.md` | Jamie; Conrad | Jamie wrote earlier documentation; Conrad revised it for the integrated D4 prototype and tests. |
+| `README.md` | Jamie; Andrew; Conrad | Jamie and Andrew wrote/revised earlier documentation and the final-build plan; Conrad revised it for the integrated D4 prototype and tests. |
 
 *The D3 README credits Conrad and Jamie jointly for the model area. That shared
 credit is retained here; Jamie's specific per-file role must be confirmed before
-submission rather than inferred from commits. Proposed remaining owners and
-stretch-goal commitments above also need team agreement.*
+submission rather than inferred from commits. Remaining owners and stretch goals
+retain the newer team plan from `main`.*
 
 **GenAI use:** Generative AI assisted with model and test implementation,
 integration/debugging, and drafting/revising documentation. This includes JUnit
 conversion, candidate validation/edge-case tests, and reference-image/service
-checks. 
+checks.
