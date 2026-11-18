@@ -1,5 +1,6 @@
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
+
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -33,15 +34,21 @@ public class PlantController {
             String apiKey = System.getenv("PLANTNET_API_KEY");
             PlantIdentifier identifier = new PlantNetIdentifier(apiKey);
 
-            // TODO: Replace with real catalog data
-            PlantCatalog catalog =
-                new LocalPlantCatalog(new ArrayList<>(), new ArrayList<>());
+            PlantCatalog catalog = DemoPlantCatalog.create();
 
             PlantModel model = new PlantModel(identifier, catalog);
 
             SwingUtilities.invokeLater(() -> {
                 PlantView view = new PlantView();
                 PlantController controller = new PlantController(model, view);
+                view.setController(controller);
+
+                JFrame frame = new JFrame("Paeonia");
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setContentPane(view);
+                frame.pack();
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
 
                 // The view forwards user events to this controller
                 view.render(model.snapshot());
@@ -77,6 +84,7 @@ public class PlantController {
             protected void done() {
                 try {
                     get();
+                    view.showUploadedPhoto(image);
                     view.render(model.snapshot());
                 } catch (Exception e) {
                     handleIdentifyFailure(e.getCause() != null ? e.getCause() : e);
@@ -101,7 +109,8 @@ public class PlantController {
     public void checkoutNext() {
         try {
             CartItem item = model.checkoutNext();
-            view.showMessage("Checked out: " + item.getListing().getDisplayName());
+            view.showMessage("Demo checkout only; no order or payment was made: "
+                + item.getListing().getDisplayName());
             view.render(model.snapshot());
         } catch (NoSuchElementException e) {
             view.showMessage("Your cart is empty");

@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Immutable class for the indentifying features of a plant.
  * @author Joshua Molina (joshm05)
@@ -10,6 +12,7 @@ public final class Identification
     private final String scientificName;
     private final String commonName;
     private final double confidence;
+    private final List<PlantDetails.ReferenceImage> referenceImages;
 
     /**
      * Constructor method for the Identification class.
@@ -21,6 +24,12 @@ public final class Identification
      * @throws IllegalArgumentException if a required value is invalid
      */
     public Identification(String speciesId, String scientificName, String commonName, double confidence)
+    {
+        this(speciesId, scientificName, commonName, confidence, List.of());
+    }
+
+    public Identification(String speciesId, String scientificName, String commonName,
+            double confidence, List<PlantDetails.ReferenceImage> referenceImages)
     {
         if (speciesId == null || speciesId.isBlank())
         {
@@ -42,6 +51,12 @@ public final class Identification
             throw new IllegalArgumentException("Confidence must be between zero and one");
         }
         this.confidence = confidence;
+        if (referenceImages == null
+                || referenceImages.stream().anyMatch(image -> image == null))
+        {
+            throw new IllegalArgumentException("Reference images must contain non-null values");
+        }
+        this.referenceImages = List.copyOf(referenceImages);
     }
 
     /**
@@ -78,5 +93,10 @@ public final class Identification
     public double getConfidence()
     {
         return confidence;
+    }
+
+    public List<PlantDetails.ReferenceImage> getReferenceImages()
+    {
+        return referenceImages;
     }
 }

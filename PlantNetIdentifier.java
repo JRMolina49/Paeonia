@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -44,14 +45,15 @@ public class PlantNetIdentifier implements PlantIdentifier {
             throw new IllegalArgumentException("Image cannot be null or empty.");
         }
 
-        String boundary = "----PlantNetBoundary12345";
+        String boundary = "----PlantNet-" + UUID.randomUUID();
+        byte[] jpegImage = PlantImageEncoder.toJpeg(image);
 
         try
         {
             String requestUrl = endpoint + "?api-key="
                 + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
 
-            byte[] requestBody = createRequestBody(image, boundary);
+            byte[] requestBody = createRequestBody(jpegImage, boundary);
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(requestUrl))
@@ -107,7 +109,7 @@ public class PlantNetIdentifier implements PlantIdentifier {
         return output.toByteArray();
     }
 
-    private List<Identification> parseResults(String json)
+    static List<Identification> parseResults(String json)
     {
         JsonObject response = JsonParser.parseString(json).getAsJsonObject();
         JsonArray results = response.getAsJsonArray("results");
@@ -126,6 +128,13 @@ public class PlantNetIdentifier implements PlantIdentifier {
 
             String scientificName = species.get("scientificName")
                 .getAsString();
+            String speciesId = scientificName;
+            JsonElement nameWithoutAuthor = species.get("scientificNameWithoutAuthor");
+            if (nameWithoutAuthor != null && !nameWithoutAuthor.isJsonNull()
+                    && !nameWithoutAuthor.getAsString().isBlank())
+            {
+                speciesId = nameWithoutAuthor.getAsString();
+            }
 
             String commonName = scientificName;
 
@@ -136,24 +145,106 @@ public class PlantNetIdentifier implements PlantIdentifier {
                 commonName = commonNames.get(0).getAsString();
             }
 
-            String speciesId = scientificName;
-
-            if (result.has("gbif") && result.getAsJsonObject("gbif").has("id"))
-            {
-                speciesId = result.getAsJsonObject("gbif")
-                    .get("id").getAsString();
-            }
-
             double confidence = result.get("score").getAsDouble();
+            List<PlantDetails.ReferenceImage> referenceImages =
+                parseReferenceImages(result.get("images"));
 
             identifications.add(new Identification(
                 speciesId,
                 scientificName,
                 commonName,
-                confidence
+                confidence,
+                referenceImages
             ));
         }
 
         return identifications;
+    }
+
+    private static List<PlantDetails.ReferenceImage> parseReferenceImages(
+            JsonElement imageElement)
+    {
+        if (imageElement == null || !imageElement.isJsonArray())
+        {
+            return List.of();
+        }
+
+        List<PlantDetails.ReferenceImage> images = new ArrayList<>();
+        for (JsonElement element : imageElement.getAsJsonArray())
+        {
+            if (!element.isJsonObject())
+            {
+                continue;
+            }
+
+            JsonObject image = element.getAsJsonObject();
+            JsonElement urlElement = image.get("url");
+            if (urlElement == null || !urlElement.isJsonObject())
+            {
+                continue;
+            }
+
+            JsonObject urls = urlElement.getAsJsonObject();
+            String url = readString(urls, "m");
+            if (url.isBlank())
+            {
+                url = readString(urls, "s");
+            }
+            if (!isPlantNetImageUrl(url))
+            {
+                continue;
+            }
+
+            String organ = readString(image, "organ");
+            JsonElement organsElement = image.get("organs");
+            if (organ.isBlank() && organsElement != null && organsElement.isJsonArray()
+                    && !organsElement.getAsJsonArray().isEmpty())
+            {
+                JsonElement firstOrgan = organsElement.getAsJsonArray().get(0);
+                if (firstOrgan.isJsonObject())
+                {
+                    organ = readString(firstOrgan.getAsJsonObject(), "name");
+                }
+            }
+
+            images.add(new PlantDetails.ReferenceImage(
+                url,
+                readString(image, "author"),
+                readString(image, "license"),
+                organ
+            ));
+        }
+        return List.copyOf(images);
+    }
+
+    private static String readString(JsonObject object, String key)
+    {
+        JsonElement element = object.get(key);
+        if (element == null || element.isJsonNull() || !element.isJsonPrimitive())
+        {
+            return "";
+        }
+        return element.getAsString();
+    }
+
+    private static boolean isPlantNetImageUrl(String value)
+    {
+        if (value.isBlank())
+        {
+            return false;
+        }
+        try
+        {
+            URI uri = URI.create(value);
+            String host = uri.getHost();
+            return "https".equalsIgnoreCase(uri.getScheme())
+                && host != null
+                && (host.equalsIgnoreCase("plantnet.org")
+                    || host.toLowerCase(java.util.Locale.ROOT).endsWith(".plantnet.org"));
+        }
+        catch (IllegalArgumentException e)
+        {
+            return false;
+        }
     }
 }
