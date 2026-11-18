@@ -1,20 +1,17 @@
+import org.junit.Test;
+
 /**
- * Standalone checks for Identification.
+ * JUnit checks for Identification.
  * @author Conrad
  */
 public final class IdentificationTest
 {
-    private IdentificationTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs the checks.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         Identification result = new Identification("species", "Scientific", "Common", 0.9);
         TestSupport.check("species".equals(result.getSpeciesId()), "Species ID");
@@ -41,6 +38,24 @@ public final class IdentificationTest
             TestSupport.check(new Identification("species", "Scientific", "", boundary)
                 .getConfidence() == boundary, "Confidence boundary and missing common name");
         }
-        System.out.println("IdentificationTest passed");
+    }
+
+    /** Reference metadata remains immutable and independent of caller lists. */
+    @Test
+    public void testReferenceImages()
+    {
+        PlantDetails.ReferenceImage reference = new PlantDetails.ReferenceImage(
+            "https://images.plantnet.org/photo.jpg", "Author", "CC BY", "leaf");
+        java.util.List<PlantDetails.ReferenceImage> images = new java.util.ArrayList<>();
+        images.add(reference);
+        Identification value = new Identification("species", "Scientific", "Common", 0.9, images);
+        images.clear();
+        org.junit.Assert.assertEquals(java.util.List.of(reference), value.getReferenceImages());
+        org.junit.Assert.assertThrows(UnsupportedOperationException.class,
+            () -> value.getReferenceImages().clear());
+        images.add(null);
+        org.junit.Assert.assertThrows(IllegalArgumentException.class, () -> new Identification("species", "Scientific", "Common", 0.9, images));
+        org.junit.Assert.assertThrows(IllegalArgumentException.class,
+            () -> new Identification("species", "Scientific", "Common", 0.9, null));
     }
 }

@@ -1,3 +1,5 @@
+import org.junit.Test;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.util.List;
@@ -9,17 +11,12 @@ import javax.swing.SwingUtilities;
 /** Checks controller wiring, background work, cart actions, and failures. */
 public final class PlantControllerTest
 {
-    private PlantControllerTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs controller checks without opening dialogs or making HTTP requests.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         byte[] image = TestSupport.image();
         Listing listing = TestSupport.listing();
@@ -76,9 +73,9 @@ public final class PlantControllerTest
         SwingUtilities.invokeAndWait(() ->
         {
             TestSupport.check(button(view, "Select Plant Image").isEnabled(), "Restore controls");
-            button(view, "Add to Cart").doClick(0);
+            button(view, "Add Sample Item").doClick(0);
             TestSupport.check(model.snapshot().getCart().size() == 1, "View forwards add to controller");
-            button(view, "Checkout").doClick(0);
+            button(view, "Demo Checkout").doClick(0);
             TestSupport.check(model.snapshot().getCart().isEmpty(), "View forwards checkout");
             TestSupport.check(view.message.contains("Plant"), "Checkout uses Listing getters");
             controller[0].checkoutNext();
@@ -107,7 +104,6 @@ public final class PlantControllerTest
             TestSupport.check(view.message.contains("service is unavailable"), "Service error message");
             TestSupport.check(button(view, "Select Plant Image").isEnabled(), "Restore controls after failure");
         });
-        System.out.println("PlantControllerTest passed");
     }
 
     private static JButton button(Container root, String text)
