@@ -1,121 +1,304 @@
 # Paeonia
 
-Group 60: Jamie, Conrad, Josh, Andrew
+**CS 2114 · Project 3 · Deliverable 4 — Second Prototype + Tests**
 
-## Project overview
+**Group 60:** Jamie, Conrad, Josh, and Andrew
 
-Paeonia is a plant-identification and shopping application. The project uses
-model-view-controller (MVC) roles, with the Java files currently kept in the
-repository root rather than separate source folders.
+Paeonia is a Java Swing application that identifies a plant from an image,
+shows plant information and reference photos, and lets the user add sample
+listings to a FIFO shopping cart. Identification can use PlantNet or an offline
+demo. Listings and checkout are demonstrations; no inventory is purchased and
+no payment is processed.
 
-## Project structure
+## Compile and Run
 
-| Area | Files | Responsibility |
-|---|---|---|
-| Plant and listing data | `Identification.java`, `PlantDetails.java`, `Listing.java`, `CartItem.java`, `CatalogResult.java` | Hold identification, care, catalog, and cart data. |
-| Model state and queue | `PlantModel.java`, `PlantSnapshot.java`, `LinkedQueue.java` | Process identifications through injected services, manage listings and the FIFO cart, and expose state snapshots. |
-| Services | `PlantIdentifier.java`, `PlantCatalog.java`, `PlantNetIdentifier.java`, `LocalPlantCatalog.java`, `ServiceException.java` | Define the service contracts, PlantNet image-identification client, local catalog, and service error type. |
-| Swing UI | `PlantView.java` | Displays plant details, available listings, and cart contents; lets the user choose an image and invokes controller actions. |
-| Controller and application entry point | `PlantController.java` | Coordinates UI actions with the model. `PlantController.main()` is the intended application entry point. |
-| Tests | `tests/` | Standalone Java test programs cover the data classes, queue, model, services, and view. |
+### Requirements
 
-### Running the model and application
+- JDK 11 or newer (`java -version` and `javac -version`).
+- Maven (`mvn -version`). Maven downloads Gson and JUnit on the first build.
+- A graphical desktop to run the application. Tests can run headlessly.
+- A PlantNet API key and internet access for live identification only.
 
-- **Standalone model tests:** `PlantModelTest.main()` exercises `PlantModel`
-  with test identifier and catalog services. `PlantModel` itself is not a
-  standalone application and has no `main()` method.
-- **Application startup:** `PlantController.main()` is the intended entry
-  point. It reads the `PLANTNET_API_KEY` environment variable, creates the
-  identifier, model, empty local catalog, view, and controller. When run
-  directly, it opens the plant panel in a separate window.
-- **Current integration status:** The service classes and controller are
-  present, and the controller's checkout call matches `CartItem.getListing()`.
-  The panel is displayed, but `main()` does not call
-  `view.setController(controller)`, so the view's image, add-to-cart, and
-  checkout actions are not connected to the controller.
+Run these commands from the repository root:
+
+```sh
+mvn compile dependency:copy-dependencies -DincludeScope=runtime
+java -cp "target/classes:target/dependency/*" PlantController --demo
+```
+
+The commands above use the macOS/Linux classpath separator. On Windows, replace
+`:` with `;` in the Java classpath.
+
+**Offline demo:** `--demo` loads sample aloe information and a sample listing.
+Selecting any supported image returns the same canned aloe result. This mode
+lets us demonstrate image validation, rendering, the cart, and checkout without
+an API key. It does not recognize the contents of the selected image or supply
+PlantNet reference photos.
+
+**Live identification:** set `PLANTNET_API_KEY` in the environment, then omit
+`--demo`. For example, in a macOS/Linux terminal:
+
+```sh
+export PLANTNET_API_KEY="your-key-here"
+java -cp "target/classes:target/dependency/*" PlantController
+```
+
+Without a nonblank key, startup selects demo mode automatically. In live mode,
+choose **Select Plant Image** and select a readable image. The application
+identifies it in a background worker, then displays the results and any supported
+PlantNet reference photos. Care information and sample listings are currently
+available only for aloe, monstera, and Chinese peony. Other recognized species
+can still be displayed, with a message when no sample listing is available.
+
+Use **Add Sample Item** to enqueue a listing and **Demo Checkout** to remove the
+oldest cart item. The cart remains intact when another plant is identified.
+
+## Run the Tests
+
+```sh
+mvn clean test
+```
+
+To run just the core model and queue tests:
+
+```sh
+mvn -Dtest=PlantModelTest,LinkedQueueTest test
+```
+
+The suite uses **JUnit 4**, with **27 test methods across 17 test classes**.
+Maven discovers tests in `tests/`; results are written to
+`target/surefire-reports/`. A successful run reports zero failures and errors.
+These are JUnit tests, so run them through Maven or a JUnit runner rather than
+calling a test class's `main()` method.
+
+Model tests inject identifier and catalog services and run independently of the
+view. HTTP contract tests use a local loopback server instead of PlantNet; they
+require no API key. The additional Swing and controller tests run headlessly,
+perform UI operations on the event dispatch thread, and use recording views
+instead of opening message dialogs.
+
+| Test area | What is checked |
+|---|---|
+| Model | Identification, invalid/corrupt images, no matches, invalid service data, atomic state replacement, snapshots, cart validation, FIFO checkout, and cart retention across identifications. |
+| Queue | Normal enqueue/peek/dequeue, null enqueue, empty peek/dequeue, size and empty state, independent list copies, reuse after draining, and order after interleaved enqueues/dequeues. |
+| New reference-image state | Metadata parsing and getters, allowed URL validation, default attribution text, defensive copies, immutable lists, propagation into snapshots, and preservation after failed identification. |
+| Service implementations | Catalog filtering and validation; sample catalog entries; JPEG conversion; multipart upload format; successful, no-match, and failed HTTP responses; malformed response data. |
+| Data classes | Constructor validation, getters, boundaries, and immutable snapshots/collections. |
+| Controller and view | Event wiring, background identification, busy controls, cart actions, replacement of displayed results, and error recovery. |
+
+Methods without input parameters, such as `snapshot()`, `size()`, and
+`isEmpty()`, are checked in empty and populated states rather than given an
+artificial invalid argument.
+
+## Design
+
+The model owns identification results, available listings, and the cart. User
+actions follow this path:
+
+```text
+PlantView → PlantController → PlantModel → PlantIdentifier / PlantCatalog
+                                     ↓
+                               PlantSnapshot
+                                     ↓
+                                 PlantView
+```
+
+| Responsibility | Classes |
+|---|---|
+| Model state and FIFO cart | `PlantModel`, `LinkedQueue`, `PlantSnapshot` |
+| Identification and reference-photo data | `Identification`, `PlantDetails`, `PlantDetails.ReferenceImage` |
+| Catalog and cart data | `CatalogResult`, `Listing`, `CartItem` |
+| Service contracts | `PlantIdentifier`, `PlantCatalog` |
+| PlantNet requests, parsing, and upload conversion | `PlantNetIdentifier`, `PlantImageEncoder`, `ServiceException` |
+| Local care information and sample listings | `LocalPlantCatalog`, `DemoPlantCatalog` |
+| Actions, background work, and application startup | `PlantController` |
+| Swing rendering, file selection, and photo display | `PlantView` |
+
+The view renders snapshots instead of keeping its own plant, listing, or cart
+collections. Its image cache and loading indicators are presentation state.
+`PlantModel` has no Swing dependency and uses the service interfaces so tests
+can replace network and catalog behavior.
 
 ## Reflection
-### How did the design absorb the change?
-We did everything in the next steps section, including improving the UI and tests. It was surprising we got everything done. Our changes touched almost every file.
 
-### Did the change cross the model/view line?
-No. Everything we changed was part of our original spec document so there was no crossing the model/view boundary.
+### How the design absorbed the change
 
-### What changed from our D3 plan?
-Nothing changed. We did the next steps on the readme.
+The repository's D3 Next Steps called for wiring the controller, populating the
+catalog, integrating the API, and testing the concrete service classes. D4
+implements that identification flow and extends its model data to carry
+**PlantNet reference photos and their attribution** alongside each result.
+Reference photos are visible after a successful live identification when the
+response contains supported image metadata.
 
-### What doesn't work yet?
-The core functionality of the app works. We need to implement the stretch goals and improve the UI.
+The feature required more than a view redesign: `Identification` and
+`PlantDetails` now hold immutable reference-image lists, and
+`PlantModel.identify()` carries those lists into the state exposed by
+`PlantSnapshot`. The existing snapshot structure could carry the richer plant
+objects without changing its public methods.
 
-### Design and implementation
+| Class touched for the feature | Change |
+|---|---|
+| `PlantNetIdentifier` | Parse reference-image URLs and attribution; normalize the species key for catalog lookup. |
+| `PlantImageEncoder` (new) | Convert readable uploads to actual JPEG bytes before sending JPEG multipart data. |
+| `Identification` | Carry reference-image metadata from the identifier. |
+| `PlantDetails` | Store immutable reference images and define the `ReferenceImage` value type. |
+| `PlantModel` | Preserve reference-image metadata when assembling identified plants. |
+| `PlantView` | Show the uploaded image and load/display a reference image with attribution. |
+| `PlantController` | Connect the new display behavior to successful identification and use the populated sample catalog. |
+| `DemoPlantCatalog` (new) | Supply care and sample listings for the supported demonstration species. |
 
-- The data classes separate plant-identification and shopping data from the UI.
-- `PlantSnapshot` contains lists of plant details, available listings, and cart
-  items. Empty lists represent a state with no identified plants or cart items.
-- `PlantModel` depends on the `PlantIdentifier` and `PlantCatalog` interfaces,
-  keeping service implementations outside the model and allowing test doubles.
-- `PlantNetIdentifier` sends image requests to PlantNet and requires a valid
-  `PLANTNET_API_KEY` plus network access.
-- `LocalPlantCatalog` implements catalog lookup, but `PlantController.main()`
-  currently constructs it with empty plant and listing lists, so no care data
-  or shopping listings are available from the application startup path.
-- `PlantView` uses Swing panels for plant information, available plants, and
-  the cart. It renders a `PlantSnapshot` and provides controls for selecting
-  an image, adding a listing, and checking out.
-- `PlantController` coordinates view requests with model operations. Its
-  startup path opens the panel in a separate window. It still needs to attach
-  the controller to the view so the UI actions reach the model.
+The API and catalog work matched the D3 plan recorded in the repository.
+Reference-photo metadata expanded that plan: it also required changes to
+`Identification`, `PlantDetails`, `PlantModel`, and the view. D3 did not record a
+class-by-class prediction of which classes would remain unchanged, so we cannot
+claim that every affected class matched such a prediction.
 
-### Does the model stand alone?
+`LinkedQueue`, `PlantSnapshot`, `Listing`, `CartItem`, `CatalogResult`,
+`PlantIdentifier`, and `PlantCatalog` did not need changes for this feature.
+The later test/integration work also added early null-listing validation to
+`LocalPlantCatalog`, restored busy-state behavior in the view, hardened response
+handling, and configured JUnit in `pom.xml`.
 
-`PlantModel` has no view or controller dependency and can be tested
-independently through `PlantModelTest.main()` using injected test services.
-The application starts through `PlantController.main()`, which opens the panel
-in a separate window. The controller and service implementation classes are
-present, but the current startup code does not connect the view's event handlers
-to the controller.
+### Model/view boundary
 
-### Current limitations
+The change crossed layers because new identification data had to reach the
+screen. The model stores image metadata; it does not download display images or
+create Swing components. The controller still requests identification and
+passes the resulting snapshot to the view. The view learned how to display a
+`ReferenceImage`, including its author, license, and optional plant part, while
+cart rules and identification state stayed in the model.
 
-| Area | Status | Notes |
+One coupling remains: `PlantNetIdentifier` constructs the nested
+`PlantDetails.ReferenceImage` type, and image-host validation is specific to
+PlantNet. Moving that metadata into a standalone value class would make another
+identification provider cheaper to add without changing the data contract used
+by the view.
+
+### Changes from D3
+
+- The sample catalog is populated instead of being empty. Unknown species still
+  produce an identification, but may have no care information or sample listing.
+- Existing constructors remain available; overloads add reference-image lists
+  without forcing every caller to provide photos.
+- Uploads are converted to JPEG rather than merely being labeled as JPEG.
+- The app retains an explicit offline demo alongside live API identification.
+- Standalone test programs were converted to JUnit, and dedicated concrete-service
+  tests were added. Model/queue checks still run independently of the UI.
+- Identification has connection/request timeouts, and malformed service responses
+  become controlled service errors. Failed model operations preserve prior state.
+
+### What does not work yet
+
+- Live PlantNet credentials, real image recognition, and reference-photo downloads
+  have not been verified by the automated suite. Local HTTP tests check the
+  request/response contract, not the live service.
+- Camera capture is not implemented; users select an image file.
+- PlantDex and location pinning are planned stretch goals and are not implemented yet.
+- The local catalog has only three species. Listings, prices, and checkout are
+  sample data, with no real seller, order, or payment integration.
+- Cart contents are held in memory and disappear when the application closes.
+- Automated coverage does not simulate every network timing condition or establish
+  visual layout quality. Timeout duration and remote-image failures still need
+  manual checks.
+
+## Next Steps
+
+### Remaining work and owners
+
+| Priority | Remaining item | Owner |
 |---|---|---|
-| Plant identification | Implemented; requires configuration | `PlantNetIdentifier` calls PlantNet and requires a valid `PLANTNET_API_KEY` and network access. |
-| Catalog and care lookup | Implemented with local data | `LocalPlantCatalog` supports lookups, but `PlantController.main()` supplies empty data lists. |
-| Controller integration | Implemented, startup wiring incomplete | `PlantController` provides identification, add-to-cart, checkout, and error handling. The panel opens, but `main()` does not call `view.setController(controller)`, so view actions are not connected. |
-| Application window | Opens separately | Running `PlantController.main()` opens the plant panel in a separate window. |
-| Tests | Present | Standalone tests cover the model and other project components; run them after verifying the current build setup. |
-
-### Changes Made from the Spec Doc:
- Some classes were changed and condensed for the sake of a working prototype so that we may test certain functionalities. The main method in `PlantController.java` was modified so that it no longer required the use of an api, and instead relied on dummy data. Nothing else was changed from the orginial specs doc.
-
-## Next steps
-
-### What is left for the final build?
-1. Improve the UI
+| 1 | Verify live identification and reference-image attribution with known aloe, monstera, and peony images; check no-match and unavailable-service behavior. | Josh and Andrew |
+| 2 | Improve the UI and check layout, unreadable files, repeated identification, and recovery after errors; retain disabled cart controls while requests run. | Conrad, with Josh and Andrew checking integration |
+| 3 | Review model/service edge cases and test contracts; manually check timeout recovery without losing previous results or cart items. | Conrad and Jamie |
+| 4 | Implement and test PlantDex so identified plants can be collected and viewed. | Josh |
+| 5 | Implement and test location pinning for where plants were found. | Jamie and Andrew |
+| 6 | Confirm the submitted D3 comparison and per-file attribution; package source, tests, and README together. | Jamie, with all members reviewing their contributions |
+| 7 | Rehearse and present the timed demo, including any completed stretch goals. | Conrad |
 
 ### Stretch goals
-1. Implement the PlantDex (stretch goal)
-2. Location pin (to pin where the plants were found)
 
-### 3-minute demo path
-1. (0:00) Launch the app and show the empty starting state.
-2. (0:20) Choose a plant image
-3. (1:00) Show care details and available listings for the identified plant.
-4. (1:30) Add two listings to the cart.
-6. (2:30) Check out the cart. The first item added comes out first (FIFO). Then try checkout on an empty cart to
-   show the "Your cart is empty" message.
+For the final build, the team is committing to **PlantDex** (Josh) and
+**location pinning** (Jamie and Andrew), as recorded in the newer team plan on
+`main`. These features are planned, not part of the current working prototype;
+each will need model-level normal/bad-input tests and a controller/view path.
+Conrad owns UI improvements and the demo.
 
-## Who does what?
-Conrad will improve the UI. Josh will implement the PlantDex. Jamie and Andrew will implement the Location pinning feature. Conard will do the demo.
+The existing reference photos, offline demo, and error recovery remain part of
+the build. Camera capture, persistent carts, a large catalog, and real
+seller/payment integration are outside the committed final-build scope.
+
+### Three-minute demo
+
+Conrad will present the demo. PlantDex and location pinning can be added to the
+walkthrough once implemented, while keeping the total within three minutes.
+
+Prepare the API key, a known catalog-species image, and an unreadable image file
+before the demo. Start live mode before presenting; allow at most 20 seconds for
+an identification request. If live access is unavailable, use the labeled demo
+and explain that remote reference photos require live data.
+
+| Time | Demonstration |
+|---|---|
+| 0:00–0:20 | Introduce the app and identify model, controller, and view responsibilities. |
+| 0:20–1:00 | Select the known image. Show the identification, care information, uploaded preview, and the new reference-photo/attribution feature when available. |
+| 1:00–1:35 | Add a sample item twice, check out one, add another, and check out again. Explain the FIFO order and that checkout is simulated. |
+| 1:35–2:05 | Select the unreadable file. Show the error, restored controls, and preserved results/cart; demonstrate empty-cart handling if time permits. |
+| 2:05–2:35 | Show the passing JUnit result and point to model/queue, interleaving, and reference-image tests. |
+| 2:35–3:00 | Explain the changed classes, the model/view boundary, and remaining limitations. |
 
 ## Attribution
 
-| Files | Contributor | Contribution |
-|---|---|---|
-| `CartItem.java`, `Identification.java`, `Listing.java`, `PlantDetails.java`, `PlantSnapshot.java` | Josh | Wrote and revised. |
-| `PlantView.java` | Josh | Wrote and revised. |
-| `CatalogResult.java`, `PlantCatalog.java`, `PlantIdentifier.java`, `LinkedQueue.java`, `PlantModel.java`, and model tests | Conrad and Jamie | Wrote and revised. |
-| `PlantController.java` | Andrew | Wrote and revised. |
-| `README.md` | Jamie and Andrew | Wrote and revised. |
+Each Java source and test file has its own row. Nested `ReferenceImage` is listed
+separately for clarity. The table combines repository history with the prior team
+attribution; contributions made outside Git still need confirmation by the team.
 
-**GenAI use:** AI assistance was used to inspect the project and help revise this README.
+| Class or file | Contributor(s) | Contribution |
+|---|---|---|
+| `CartItem.java` | Josh; Conrad | Josh wrote the data class; Conrad revised validation and tested it. |
+| `CatalogResult.java` | Conrad; Jamie* | Model/catalog result implementation, revisions, and tests. |
+| `DemoPlantCatalog.java` | Josh | Wrote the sample care/listing catalog. |
+| `Identification.java` | Josh; Conrad | Josh wrote identification data and added photo metadata; Conrad revised validation and tested it. |
+| `LinkedQueue.java` | Conrad; Jamie* | FIFO queue implementation, revisions, and tests. |
+| `Listing.java` | Josh; Conrad | Josh wrote listing data; Conrad revised validation and tested it. |
+| `LocalPlantCatalog.java` | Josh; Conrad | Josh wrote lookup behavior; Conrad integrated the result contract, validated inputs, and tested it. |
+| `PlantCatalog.java` | Conrad; Jamie* | Catalog interface and contract tests. |
+| `PlantController.java` | Andrew; Conrad; Josh | Andrew wrote the controller; Conrad revised startup, demo mode, wiring, and busy/error behavior; Josh integrated the new image display/catalog flow. |
+| `PlantDetails.java` | Josh; Conrad | Josh wrote plant data and added reference images; Conrad revised validation and tested it. |
+| `PlantDetails.ReferenceImage` | Josh; Conrad | Josh wrote image metadata and URL validation; Conrad added metadata/validation tests. |
+| `PlantIdentifier.java` | Conrad; Jamie* | Identifier interface and contract tests. |
+| `PlantImageEncoder.java` | Josh | Wrote upload conversion to JPEG. |
+| `PlantModel.java` | Conrad; Jamie*; Josh | Conrad implemented state, validation, snapshots, and queue/cart operations; Josh added reference-image propagation. |
+| `PlantNetIdentifier.java` | Josh; Conrad | Josh wrote HTTP identification and metadata parsing; Conrad revised JPEG integration, timeouts, response errors, and tests. |
+| `PlantSnapshot.java` | Josh; Conrad | Josh wrote snapshot data; Conrad revised list-based state and defensive copies and tested them. |
+| `PlantView.java` | Josh; Conrad | Josh wrote/redesigned the Swing UI and image display; Conrad revised busy controls and tested rendering/integration. |
+| `ServiceException.java` | Josh | Wrote the service error type. |
+| `tests/CartItemTest.java` | Conrad | Wrote validation/getter checks and converted them to JUnit. |
+| `tests/CatalogResultTest.java` | Conrad | Wrote result validation/copy checks and converted them to JUnit. |
+| `tests/DemoPlantCatalogTest.java` | Conrad | Wrote JUnit checks for sample species, care, and labeled listings. |
+| `tests/IdentificationTest.java` | Conrad | Wrote validation checks, converted them to JUnit, and added reference-image tests. |
+| `tests/LinkedQueueTest.java` | Conrad | Wrote queue contracts, empty/null cases, interleaved FIFO checks, and JUnit conversion. |
+| `tests/ListingTest.java` | Conrad | Wrote validation/boundary checks and converted them to JUnit. |
+| `tests/LocalPlantCatalogTest.java` | Conrad | Wrote JUnit checks for filtering, copying, unknown species, and invalid input. |
+| `tests/PlantCatalogTest.java` | Conrad | Wrote isolated catalog-contract checks and converted them to JUnit. |
+| `tests/PlantControllerTest.java` | Conrad | Wrote wiring, background-work, cart, and failure checks; adapted them to the revised UI and JUnit. |
+| `tests/PlantDetailsTest.java` | Conrad | Wrote validation checks and added JUnit reference-image/URL coverage. |
+| `tests/PlantIdentifierTest.java` | Conrad | Wrote isolated identifier-contract checks and converted them to JUnit. |
+| `tests/PlantImageEncoderTest.java` | Conrad | Wrote JUnit checks for JPEG conversion, transparency, and invalid images. |
+| `tests/PlantModelTest.java` | Conrad | Wrote isolated model/state/cart checks and JUnit feature/failure coverage. |
+| `tests/PlantNetIdentifierTest.java` | Conrad | Wrote offline parsing, metadata, validation, and loopback HTTP contract tests. |
+| `tests/PlantSnapshotTest.java` | Conrad | Wrote snapshot validation/defensive-copy checks and converted them to JUnit. |
+| `tests/PlantViewTest.java` | Conrad | Wrote headless rendering/control checks and adapted them to the revised UI and JUnit. |
+| `tests/ServiceExceptionTest.java` | Conrad | Wrote message/cause checks. |
+| `tests/TestSupport.java` | Conrad | Wrote shared assertions, fixtures, and image data for tests. |
+| `pom.xml` | Josh; Conrad | Josh added the Maven/Gson build; Conrad configured JUnit and test discovery. |
+| `README.md` | Jamie; Andrew; Conrad | Jamie and Andrew wrote/revised earlier documentation and the final-build plan; Conrad revised it for the integrated D4 prototype and tests. |
+
+*The D3 README credits Conrad and Jamie jointly for the model area. That shared
+credit is retained here; Jamie's specific per-file role must be confirmed before
+submission rather than inferred from commits. Remaining owners and stretch goals
+retain the newer team plan from `main`.*
+
+**GenAI use:** Generative AI assisted with model and test implementation,
+integration/debugging, and drafting/revising documentation. This includes JUnit
+conversion, candidate validation/edge-case tests, and reference-image/service
+checks.
