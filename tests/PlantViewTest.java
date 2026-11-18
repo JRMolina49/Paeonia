@@ -1,5 +1,3 @@
-import org.junit.Test;
-
 import java.awt.Component;
 import java.awt.Container;
 import java.util.List;
@@ -7,7 +5,6 @@ import java.util.Locale;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
@@ -17,12 +14,17 @@ import javax.swing.border.TitledBorder;
  */
 public final class PlantViewTest
 {
+    private PlantViewTest()
+    {
+        // Utility class.
+    }
+
     /**
      * Runs the view checks without opening windows or dialogs.
+     * @param args unused
      * @throws Exception if a check fails
      */
-    @Test
-    public void testContract() throws Exception
+    public static void main(String[] args) throws Exception
     {
         Locale original = Locale.getDefault();
         try
@@ -40,13 +42,14 @@ public final class PlantViewTest
         {
             Locale.setDefault(original);
         }
+        System.out.println("PlantViewTest passed");
     }
 
     private static void checkRendering()
     {
         PlantView view = new PlantView();
         JPanel plants = panel(view, "Plant Information");
-        JPanel shopping = panel(view, "Sample Listings (not for sale)");
+        JPanel shopping = panel(view, "Available Plants");
         JPanel cart = panel(view, "Shopping Cart");
         PlantSnapshot empty = new PlantSnapshot(List.of(), List.of(), List.of());
         view.render(empty);
@@ -59,7 +62,7 @@ public final class PlantViewTest
         view.render(new PlantSnapshot(List.of(TestSupport.details()),
             List.of(first, second), List.of(new CartItem(second), new CartItem(first))));
         TestSupport.check(hasLabel(plants, "Plant: Common"), "Common name displayed");
-        TestSupport.check(hasText(plants, "Care Instructions: Water weekly"), "Care displayed");
+        TestSupport.check(hasLabel(plants, "Care Instructions: Water weekly"), "Care displayed");
         TestSupport.check(shopping.getComponentCount() == 2, "Render both listings");
         TestSupport.check(hasLabel(shopping, "Plant") && hasLabel(shopping, "$10.00"),
             "First listing name and price");
@@ -83,23 +86,16 @@ public final class PlantViewTest
     {
         PlantView view = new PlantView();
         JButton select = button(view, "Select Plant Image");
-        JButton checkout = button(view, "Demo Checkout");
-        PlantSnapshot populated = new PlantSnapshot(List.of(),
-            List.of(TestSupport.listing()), List.of());
-        view.render(populated);
+        JButton checkout = button(view, "Checkout");
         TestSupport.check(select.isEnabled() && checkout.isEnabled()
             && hasLabel(view, "Ready"), "Initially ready");
         view.setBusy(true);
         TestSupport.check(!select.isEnabled() && !checkout.isEnabled(),
             "Busy state disables image selection and checkout");
-        TestSupport.check(!button(view, "Add Sample Item").isEnabled(), "Disable listing buttons while busy");
-        view.render(populated);
-        TestSupport.check(!button(view, "Add Sample Item").isEnabled(), "New listing buttons respect busy state");
         TestSupport.check(!hasLabel(view, "Ready"), "Busy status replaces ready status");
         view.setBusy(false);
         TestSupport.check(select.isEnabled() && checkout.isEnabled()
             && hasLabel(view, "Ready"), "Restore ready state");
-        TestSupport.check(button(view, "Add Sample Item").isEnabled(), "Restore listing buttons");
     }
 
     private static void checkMessages()
@@ -123,8 +119,8 @@ public final class PlantViewTest
         PlantView view = new PlantView();
         view.setController(null);
         view.render(new PlantSnapshot(List.of(), List.of(TestSupport.listing()), List.of()));
-        button(view, "Add Sample Item").doClick(0);
-        button(view, "Demo Checkout").doClick(0);
+        button(view, "Add to Cart").doClick(0);
+        button(view, "Checkout").doClick(0);
         TestSupport.check(panel(view, "Shopping Cart").getComponentCount() == 0,
             "Buttons safely handle an unattached controller");
     }
@@ -188,22 +184,6 @@ public final class PlantViewTest
             }
         }
         return null;
-    }
-
-    private static boolean hasText(Container root, String text)
-    {
-        for (Component child : root.getComponents())
-        {
-            if (child instanceof JTextArea && text.equals(((JTextArea)child).getText()))
-            {
-                return true;
-            }
-            if (child instanceof Container && hasText((Container)child, text))
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static boolean hasLabel(Container root, String text)

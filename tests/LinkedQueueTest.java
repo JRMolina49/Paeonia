@@ -1,20 +1,23 @@
-import org.junit.Test;
-
 import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * JUnit checks for LinkedQueue.
+ * Standalone checks for LinkedQueue.
  * @author Conrad
  */
 public final class LinkedQueueTest
 {
+    private LinkedQueueTest()
+    {
+        // Utility class.
+    }
+
     /**
      * Runs the checks.
+     * @param args unused
      * @throws Exception if a check fails
      */
-    @Test
-    public void testContract() throws Exception
+    public static void main(String[] args) throws Exception
     {
         LinkedQueue<String> queue = new LinkedQueue<>();
         TestSupport.check(queue.isEmpty() && queue.size() == 0, "New queue");
@@ -61,5 +64,6 @@ public final class LinkedQueueTest
         List<Integer> before = numbers.toList();
         TestSupport.check(numbers.dequeue() == 2 && numbers.dequeue() == 3, "Interleaved FIFO");
         TestSupport.check(before.equals(List.of(2, 3)), "Queue changes cannot change old list");
+        System.out.println("LinkedQueueTest passed");
     }
 }

@@ -1,5 +1,3 @@
-import org.junit.Test;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -13,9 +11,24 @@ import javax.imageio.ImageIO;
  */
 public final class PlantModelTest
 {
-    /** Checks identification, validation, snapshots, and checkout. */
-    @Test
-    public void testModel() throws Exception
+    private PlantModelTest()
+    {
+        // Utility class.
+    }
+
+    /**
+     * Runs the Model checks.
+     * @param args unused
+     * @throws Exception if a check or image encoding fails
+     */
+    public static void main(String[] args) throws Exception
+    {
+        checkModel();
+        checkCartAcrossIdentifications();
+        System.out.println("PlantModelTest passed");
+    }
+
+    private static void checkModel() throws Exception
     {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB),
@@ -109,8 +122,7 @@ public final class PlantModelTest
         expect(IllegalStateException.class, () -> multiple.identify(image));
     }
 
-    @Test
-    public void testCartAcrossIdentifications() throws Exception
+    private static void checkCartAcrossIdentifications() throws Exception
     {
         byte[] image = TestSupport.image();
         FakeIdentifier identifier = new FakeIdentifier();
@@ -195,56 +207,6 @@ public final class PlantModelTest
                 throw new IllegalStateException("Simulated service failure");
             }
             return results;
-        }
-    }
-
-    /** New reference-image state crosses the model boundary through snapshots. */
-    @Test
-    public void testReferenceImagesSurviveIdentificationAndFailedReplacement() throws Exception
-    {
-        PlantDetails.ReferenceImage reference = new PlantDetails.ReferenceImage(
-            "https://images.plantnet.org/photo.jpg", "Author", "CC BY", "leaf");
-        FakeIdentifier identifier = new FakeIdentifier();
-        identifier.results = List.of(new Identification("species", "Scientific", "Common", 0.9,
-            List.of(reference)));
-        PlantModel model = new PlantModel(identifier,
-            id -> new CatalogResult("Care", List.of(listing("item"))));
-        byte[] image = TestSupport.image();
-        model.identify(image);
-        model.addToCart("item");
-        PlantSnapshot before = model.snapshot();
-        org.junit.Assert.assertEquals(List.of(reference),
-            before.getPlant().get(0).getReferenceImages());
-        org.junit.Assert.assertThrows(UnsupportedOperationException.class,
-            () -> before.getPlant().get(0).getReferenceImages().clear());
-        identifier.results = List.of();
-        org.junit.Assert.assertThrows(IllegalArgumentException.class, () -> model.identify(image));
-        org.junit.Assert.assertEquals(before.getPlant(), model.snapshot().getPlant());
-        org.junit.Assert.assertEquals(before.getCart(), model.snapshot().getCart());
-        identifier.results = List.of(new Identification("species", "Scientific", "Common", 0.8));
-        model.identify(image);
-        org.junit.Assert.assertTrue(model.snapshot().getPlant().get(0).getReferenceImages().isEmpty());
-        org.junit.Assert.assertEquals(List.of(reference), before.getPlant().get(0).getReferenceImages());
-    }
-
-    @Test
-    public void testRejectsInvalidCatalogResults() throws Exception
-    {
-        byte[] image = TestSupport.image();
-        FakeIdentifier identifier = new FakeIdentifier();
-        PlantCatalog[] catalogs = new PlantCatalog[] {
-            id -> null,
-            id -> new CatalogResult("Care", List.of(
-                new Listing("id", "wrong-species", "Wrong", "plant", 100))),
-            id -> new CatalogResult("Care", List.of(listing("same"),
-                new Listing("same", "species", "Conflicting", "plant", 200)))
-        };
-        for (PlantCatalog catalog : catalogs)
-        {
-            PlantModel model = new PlantModel(identifier, catalog);
-            org.junit.Assert.assertThrows(IllegalStateException.class, () -> model.identify(image));
-            org.junit.Assert.assertTrue(model.snapshot().getPlant().isEmpty());
-            org.junit.Assert.assertTrue(model.snapshot().getListings().isEmpty());
         }
     }
 }

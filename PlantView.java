@@ -75,7 +75,6 @@ public class PlantView extends JPanel
     private final Map<String, List<JLabel>> referenceImageLabels = new HashMap<>();
 
     private PlantController controller;
-    private boolean busy;
 
     public PlantView()
     {
@@ -363,7 +362,6 @@ public class PlantView extends JPanel
             listingInfo.add(price);
 
             JButton addButton = createButton("Add Sample Item", MOSS, Color.WHITE);
-            addButton.setEnabled(!busy);
             addButton.addActionListener(e ->
             {
                 if (controller != null)
@@ -533,20 +531,6 @@ public class PlantView extends JPanel
     /** Disables actions while identification is running. */
     public void setBusy(boolean busy)
     {
-        this.busy = busy;
-        for (Component card : shoppingPanel.getComponents())
-        {
-            if (card instanceof JPanel)
-            {
-                for (Component child : ((JPanel)card).getComponents())
-                {
-                    if (child instanceof JButton)
-                    {
-                        child.setEnabled(!busy);
-                    }
-                }
-            }
-        }
         selectImageButton.setEnabled(!busy);
         checkoutButton.setEnabled(!busy);
         statusLabel.setText(busy ? "Identifying..." : "Ready");
