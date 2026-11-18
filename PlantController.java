@@ -1,6 +1,14 @@
+import java.awt.BorderLayout;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
-
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -26,34 +34,48 @@ public class PlantController {
         this.model = model;
         this.view = view;
         this.busy = false;
+        view.setController(this);
     }
 
     /** Runs the application. */
     public static void main(String[] args) {
         try {
             String apiKey = System.getenv("PLANTNET_API_KEY");
-            PlantIdentifier identifier = new PlantNetIdentifier(apiKey);
-
+            boolean demo = apiKey == null || apiKey.isBlank()
+                || Arrays.asList(args).contains("--demo");
+            PlantIdentifier identifier = demo
+                ? image -> List.of(new Identification("Aloe vera",
+                    "Aloe vera", "Aloe", 1.0))
+                : new PlantNetIdentifier(apiKey);
             PlantCatalog catalog = DemoPlantCatalog.create();
 
             PlantModel model = new PlantModel(identifier, catalog);
+            if (demo) {
+                // Preload sample data so the cart workflow can be tried immediately.
+                ByteArrayOutputStream image = new ByteArrayOutputStream();
+                ImageIO.write(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB),
+                    "png", image);
+                model.identify(image.toByteArray());
+            }
 
             SwingUtilities.invokeLater(() -> {
                 PlantView view = new PlantView();
-                PlantController controller = new PlantController(model, view);
-                view.setController(controller);
+                new PlantController(model, view);
+                view.render(model.snapshot());
 
-                JFrame frame = new JFrame("Paeonia");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setContentPane(view);
-                frame.pack();
+                JFrame frame = new JFrame(demo ? "Paeonia - Demo" : "Paeonia");
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                JLabel mode = new JLabel(demo
+                    ? "Demo: sample aloe results for any valid image. No live identification."
+                    : "Live PlantNet identification. Shopping uses the local sample catalog.");
+                mode.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                frame.add(mode, BorderLayout.NORTH);
+                frame.add(view, BorderLayout.CENTER);
+                frame.setSize(850, 650);
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
-
-                // The view forwards user events to this controller
-                view.render(model.snapshot());
             });
-        } catch (RuntimeException e) {
+        } catch (IOException | RuntimeException e) {
             System.err.println("Failed to start application: " + e.getMessage());
         }
     }
@@ -97,6 +119,9 @@ public class PlantController {
 
     /** Adds the listing with the given id to the shopping cart. */
     public void addPlant(String listingId) {
+        if (busy) {
+            return;
+        }
         try {
             model.addToCart(listingId);
             view.render(model.snapshot());
@@ -107,10 +132,12 @@ public class PlantController {
 
     /** Requests the next cart item for checkout. */
     public void checkoutNext() {
+        if (busy) {
+            return;
+        }
         try {
             CartItem item = model.checkoutNext();
-            view.showMessage("Demo checkout only; no order or payment was made: "
-                + item.getListing().getDisplayName());
+            view.showMessage("Demo checkout only; no order or payment was made: " + item.getListing().getDisplayName());
             view.render(model.snapshot());
         } catch (NoSuchElementException e) {
             view.showMessage("Your cart is empty");

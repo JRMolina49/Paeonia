@@ -1,23 +1,20 @@
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Standalone checks for CatalogResult.
+ * JUnit checks for CatalogResult.
  * @author Conrad
  */
 public final class CatalogResultTest
 {
-    private CatalogResultTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs the checks.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         Listing listing = TestSupport.listing();
         List<Listing> source = new ArrayList<>(List.of(listing));
@@ -33,6 +30,5 @@ public final class CatalogResultTest
         TestSupport.expect(IllegalArgumentException.class, () -> new CatalogResult("", source));
         TestSupport.check(new CatalogResult("", List.of()).getListings().isEmpty(),
             "Unknown species can have empty care and listings");
-        System.out.println("CatalogResultTest passed");
     }
 }

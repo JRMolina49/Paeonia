@@ -1,20 +1,17 @@
+import org.junit.Test;
+
 /**
- * Standalone checks for Listing.
+ * JUnit checks for Listing.
  * @author Conrad
  */
 public final class ListingTest
 {
-    private ListingTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs the checks.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         Listing listing = TestSupport.listing();
         TestSupport.check("id".equals(listing.getId()), "Listing ID");
@@ -37,6 +34,5 @@ public final class ListingTest
             () -> new Listing("id", "species", "Plant", "plant", -1));
         TestSupport.check(new Listing("id", "species", "Plant", "plant", 0)
             .getPriceCents() == 0, "Zero price is valid");
-        System.out.println("ListingTest passed");
     }
 }
