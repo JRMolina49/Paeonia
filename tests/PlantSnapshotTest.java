@@ -1,23 +1,20 @@
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Standalone checks for PlantSnapshot.
+ * JUnit checks for PlantSnapshot.
  * @author Conrad
  */
 public final class PlantSnapshotTest
 {
-    private PlantSnapshotTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs the checks.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         PlantDetails details = TestSupport.details();
         Listing listing = TestSupport.listing();
@@ -53,6 +50,5 @@ public final class PlantSnapshotTest
         PlantSnapshot empty = new PlantSnapshot(List.of(), List.of(), List.of());
         TestSupport.check(empty.getPlant().isEmpty() && empty.getListings().isEmpty()
             && empty.getCart().isEmpty(), "Empty snapshot");
-        System.out.println("PlantSnapshotTest passed");
     }
 }

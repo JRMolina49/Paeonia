@@ -80,7 +80,8 @@ public class PlantModel
             }
             plants.add(new PlantDetails(result.getSpeciesId(),
                 result.getScientificName(), result.getCommonName(),
-                details.getCareText(), result.getConfidence()));
+                details.getCareText(), result.getConfidence(),
+                result.getReferenceImages()));
             for (Listing listing : details.getListings())
             {
                 if (!result.getSpeciesId().equals(listing.getSpeciesId()))

@@ -1,22 +1,19 @@
+import org.junit.Test;
+
 import java.util.List;
 
 /**
- * Standalone checks for PlantCatalog.
+ * JUnit checks for PlantCatalog.
  * @author Conrad
  */
 public final class PlantCatalogTest
 {
-    private PlantCatalogTest()
-    {
-        // Utility class.
-    }
-
     /**
      * Runs the checks.
-     * @param args unused
      * @throws Exception if a check fails
      */
-    public static void main(String[] args) throws Exception
+    @Test
+    public void testContract() throws Exception
     {
         byte[] image = TestSupport.image();
         PlantIdentifier identifier = bytes -> List.of(
@@ -47,6 +44,5 @@ public final class PlantCatalogTest
         PlantModel conflictingIds = new PlantModel(identifier,
             id -> new CatalogResult("Care", List.of(listing, conflicting)));
         TestSupport.expect(IllegalStateException.class, () -> conflictingIds.identify(image));
-        System.out.println("PlantCatalogTest passed");
     }
 }

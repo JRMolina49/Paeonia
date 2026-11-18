@@ -44,16 +44,10 @@ public class PlantController {
             boolean demo = apiKey == null || apiKey.isBlank()
                 || Arrays.asList(args).contains("--demo");
             PlantIdentifier identifier = demo
-                ? image -> List.of(new Identification("Helianthus annuus",
-                    "Helianthus annuus", "Sunflower", 1.0))
+                ? image -> List.of(new Identification("Aloe vera",
+                    "Aloe vera", "Aloe", 1.0))
                 : new PlantNetIdentifier(apiKey);
-            PlantCatalog catalog = new LocalPlantCatalog(
-                List.of(new PlantDetails("Helianthus annuus", "Helianthus annuus",
-                    "Sunflower", "Full sun; water when the top of the soil is dry.", 1.0)),
-                List.of(new Listing("sunflower-seeds", "Helianthus annuus",
-                    "Sunflower seeds", "Seeds", 399),
-                    new Listing("sunflower-starter", "Helianthus annuus",
-                        "Sunflower starter plant", "Plant", 899)));
+            PlantCatalog catalog = DemoPlantCatalog.create();
 
             PlantModel model = new PlantModel(identifier, catalog);
             if (demo) {
@@ -72,7 +66,7 @@ public class PlantController {
                 JFrame frame = new JFrame(demo ? "Paeonia - Demo" : "Paeonia");
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 JLabel mode = new JLabel(demo
-                    ? "Demo: sample sunflower results for any valid image. No live identification."
+                    ? "Demo: sample aloe results for any valid image. No live identification."
                     : "Live PlantNet identification. Shopping uses the local sample catalog.");
                 mode.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                 frame.add(mode, BorderLayout.NORTH);
@@ -112,6 +106,7 @@ public class PlantController {
             protected void done() {
                 try {
                     get();
+                    view.showUploadedPhoto(image);
                     view.render(model.snapshot());
                 } catch (Exception e) {
                     handleIdentifyFailure(e.getCause() != null ? e.getCause() : e);
@@ -142,7 +137,7 @@ public class PlantController {
         }
         try {
             CartItem item = model.checkoutNext();
-            view.showMessage("Checked out: " + item.getListing().getDisplayName());
+            view.showMessage("Demo checkout only; no order or payment was made: " + item.getListing().getDisplayName());
             view.render(model.snapshot());
         } catch (NoSuchElementException e) {
             view.showMessage("Your cart is empty");
