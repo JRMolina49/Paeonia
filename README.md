@@ -35,6 +35,17 @@ repository root rather than separate source folders.
   checkout actions are not connected to the controller.
 
 ## Reflection
+### How did the design absorb the change?
+We did everything in the next steps section, including improving the UI and tests. It was surprising we got everything done. Our changes touched almost every file.
+
+### Did the change cross the model/view line?
+No. Everything we changed was part of our original spec document so there was no crossing the model/view boundary.
+
+### What changed from our D3 plan?
+Nothing changed. We did the next steps on the readme.
+
+### What doesn't work yet?
+The core functionality of the app works. We need to implement the stretch goals and improve the UI.
 
 ### Design and implementation
 
@@ -79,13 +90,23 @@ to the controller.
 
 ## Next steps
 
-1. In `PlantController.main()`, call `view.setController(controller)` so the
-   panel's controls are connected to the controller.
-2. Populate `LocalPlantCatalog` with plant details and listings.
-3. Configure `PLANTNET_API_KEY` and verify PlantNet connectivity.
-4. Compile the project and run all tests, including `PlantViewTest`.
-5. Configure the main method in `PlantController.java` so that it integrates the api
-6. Create test classes for `PlantNetIdentifier.java`, and `LocalPlantCatalog.java`
+### What is left for the final build?
+1. Improve the UI
+
+### Stretch goals
+1. Implement the PlantDex (stretch goal)
+2. Location pin (to pin where the plants were found)
+
+### 3-minute demo path
+1. (0:00) Launch the app and show the empty starting state.
+2. (0:20) Choose a plant image
+3. (1:00) Show care details and available listings for the identified plant.
+4. (1:30) Add two listings to the cart.
+6. (2:30) Check out the cart. The first item added comes out first (FIFO). Then try checkout on an empty cart to
+   show the "Your cart is empty" message.
+
+## Who does what?
+Conrad will improve the UI. Josh will implement the PlantDex. Jamie and Andrew will implement the Location pinning feature. Conard will do the demo.
 
 ## Attribution
 
@@ -95,6 +116,6 @@ to the controller.
 | `PlantView.java` | Josh | Wrote and revised. |
 | `CatalogResult.java`, `PlantCatalog.java`, `PlantIdentifier.java`, `LinkedQueue.java`, `PlantModel.java`, and model tests | Conrad and Jamie | Wrote and revised. |
 | `PlantController.java` | Andrew | Wrote and revised. |
-| `README.md` | Jamie | Wrote and revised. |
+| `README.md` | Jamie and Andrew | Wrote and revised. |
 
 **GenAI use:** AI assistance was used to inspect the project and help revise this README.
